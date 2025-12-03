@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Ticket, Article } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A', email: 'agency@orionhub.io' },
   { id: 'u2', name: 'User B', email: 'client@orionhub.io' }
@@ -204,4 +204,23 @@ export const MOCK_WEBHOOKS = [
 ];
 export const MOCK_API_KEYS = [
   { id: 'key-1', userId: 'u1', key: 'mock-api-key-123', permissions: ['contacts:read'] }
+];
+export const MOCK_TICKETS: Ticket[] = [
+  { id: 't1', title: 'Bug in automations', description: 'Workflow builder crashes on drag.', priority: 'high', type: 'bug', status: 'open', orgId: 'org-1', createdAt: Date.now() - 86400000 * 2 },
+  { id: 't2', title: 'Feature request: SMS A/B testing', description: 'Add variant support for SMS campaigns.', priority: 'medium', type: 'feature', status: 'open', orgId: 'org-2', createdAt: Date.now() - 86400000 },
+  { id: 't3', title: 'Question about billing', description: 'How do I upgrade my plan?', priority: 'low', type: 'other', status: 'resolved', orgId: 'org-1', createdAt: Date.now() - 86400000 * 5, resolvedAt: Date.now() - 86400000 * 4 },
+  { id: 't4', title: 'Funnel page not loading', description: 'The editor for my landing page is stuck on the loading screen.', priority: 'high', type: 'bug', status: 'open', orgId: 'org-2', createdAt: Date.now() - 3600000 * 3 },
+  { id: 't5', title: 'Add more email templates', description: 'It would be great to have more templates for e-commerce.', priority: 'low', type: 'feature', status: 'open', orgId: 'org-1', createdAt: Date.now() - 86400000 * 10 },
+];
+export const MOCK_ARTICLES: Article[] = [
+  { id: 'a1', title: 'How to Build Your First Automation', category: 'automations', content: 'A step-by-step guide to creating powerful workflows that save you time and engage your customers.', role: 'all' },
+  { id: 'a2', title: 'Managing Contacts and Tags', category: 'crm', content: 'Learn best practices for organizing your contacts, using tags for segmentation, and leveraging custom fields.', role: 'user' },
+  { id: 'a3', title: 'Creating a High-Converting Funnel', category: 'funnels', content: 'From landing page to thank you page, learn how to build a funnel that turns visitors into customers.', role: 'all' },
+  { id: 'a4', title: 'Understanding Your Sales Pipeline', category: 'pipelines', content: 'Get the most out of your visual pipeline. Learn how to customize stages and track deal progress.', role: 'user' },
+  { id: 'a5', title: 'Launching an Email Campaign', category: 'campaigns', content: 'Everything you need to know about creating, scheduling, and analyzing email marketing campaigns.', role: 'all' },
+  { id: 'a6', title: 'Using the Unified Inbox', category: 'inbox', content: 'Manage all your customer conversations from email and SMS in one centralized inbox.', role: 'all' },
+  { id: 'a7', title: 'Setting Up Your Calendar and Appointments', category: 'calendar', content: 'Configure your availability, create appointment types, and share your booking link with the world.', role: 'user' },
+  { id: 'a8', title: 'Agency Guide: Managing Sub-accounts', category: 'agency', content: 'Learn how to create and manage client sub-accounts, set permissions, and apply custom branding.', role: 'admin' },
+  { id: 'a9', title: 'Interpreting Your Dashboard Analytics', category: 'reporting', content: 'A deep dive into the metrics on your main dashboard and what they mean for your business.', role: 'all' },
+  { id: 'a10', title: 'Connecting Integrations', category: 'settings', content: 'Sync your Google or Outlook calendar, connect to Stripe, and set up webhooks for custom integrations.', role: 'user' },
 ];

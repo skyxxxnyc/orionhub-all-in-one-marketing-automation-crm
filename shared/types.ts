@@ -243,3 +243,22 @@ export interface ReportMetrics {
   revenue?: number;
   [key: string]: number | undefined;
 }
+// New types for Phase 15
+export interface Ticket {
+    id: string;
+    title: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high';
+    type: 'bug' | 'feature' | 'other';
+    status: 'open' | 'resolved';
+    orgId: string;
+    createdAt: number;
+    resolvedAt?: number;
+}
+export interface Article {
+    id: string;
+    title: string;
+    category: string;
+    content: string;
+    role: 'all' | 'admin' | 'user' | 'client';
+}

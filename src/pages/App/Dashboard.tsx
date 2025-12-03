@@ -5,9 +5,15 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { ReportingDashboard } from "@/components/ReportingDashboard";
 import { AgencyReport } from "@/components/AgencyReport";
 import { useAuthStore } from "@/lib/mock-auth";
+import { OnboardingTooltip } from "@/components/OnboardingTooltip";
+import React from "react";
 export function Dashboard() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const isAgency = currentOrg?.type === 'agency';
+  React.useEffect(() => {
+    // In a real app, you'd trigger a tour here based on user state
+    // e.g., if (!localStorage.getItem('tour-seen')) { startTour(); }
+  }, []);
   return (
     <div className="max-w-full mx-auto">
       <div className="py-8 md:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
@@ -17,7 +23,9 @@ export function Dashboard() {
             <p className="text-muted-foreground">Welcome back! Here's a snapshot of your business.</p>
           </div>
           <div className="flex gap-2">
-            <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Contact</Button>
+            <OnboardingTooltip tourId="add-contact-btn" content="Quickly add a new contact from here.">
+              <Button><PlusCircle className="mr-2 h-4 w-4" /> Add Contact</Button>
+            </OnboardingTooltip>
             <Button variant="outline"><Import className="mr-2 h-4 w-4" /> Import CSV</Button>
           </div>
         </div>
