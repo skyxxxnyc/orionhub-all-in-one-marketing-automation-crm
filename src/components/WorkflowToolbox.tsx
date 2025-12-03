@@ -21,9 +21,9 @@ const toolboxItems = {
     { label: 'If/Else', type: 'condition', icon: 'GitBranch', description: 'Splits the path based on a condition.' },
   ],
   Integrations: [
-    { label: 'Send Gmail Sequence', type: 'action', icon: 'Mail', description: 'Send personalized email via Gmail' },
-    { label: 'Schedule Calendar Event', type: 'action', icon: 'CalendarPlus', description: 'Add event to Google Calendar' },
-    { label: 'Research Prospect', type: 'action', icon: 'Search', description: 'Enrich contact with Perplexity AI' },
+    { label: 'Send Gmail Sequence', type: 'action', icon: 'Mail', description: 'Send personalized email via Gmail', config: { to: '{{contact.email}}', subject: 'Personalized Update' } },
+    { label: 'Schedule Calendar Event', type: 'action', icon: 'CalendarPlus', description: 'Add event to Google Calendar', config: { eventTitle: 'Consultation Call', duration: 30 } },
+    { label: 'Research Prospect', type: 'action', icon: 'Search', description: 'Enrich contact with Perplexity AI', config: { prompt: 'Research {{contact.company}} for latest news and insights' } },
   ],
   Exit: [
     { label: 'End Workflow', type: 'end', icon: 'CheckCircle', description: 'Ends this workflow path.' },
@@ -32,9 +32,8 @@ const toolboxItems = {
 export function WorkflowToolbox() {
   const currentOrg = useAuthStore(s => s.currentOrg);
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, item: any) => {
-    const nodeData = { ...item, orgId: currentOrg?.id };
-    const data = JSON.stringify({ type: 'custom', data: nodeData });
-    event.dataTransfer.setData('application/reactflow', data);
+    const nodeData = { data: { ...item, orgId: currentOrg?.id }, type: 'custom' };
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeData));
     event.dataTransfer.effectAllowed = 'move';
   };
   return (

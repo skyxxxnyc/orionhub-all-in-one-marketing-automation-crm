@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import type { Article } from '@shared/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const faqs = [
     { title: "What is a workflow?", content: "A workflow is an automated sequence of actions, triggers, and conditions that you can set up to engage with your contacts." },
     { title: "How do I import contacts?", content: "You can import contacts via a CSV file from the Contacts page. Ensure your file has 'name' and 'email' columns." },
@@ -26,6 +27,7 @@ const fetchArticles = async (role?: string) => api<{ items: Article[] }>('/api/a
 export function HelpCenter() {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [topicFilter, setTopicFilter] = useState('all');
     const user = useAuthStore(s => s.user);
     const role = useAuthStore(s => s.role);
     const { data, isLoading } = useQuery({
@@ -37,9 +39,10 @@ export function HelpCenter() {
     const filteredArticles = useMemo(() => {
         if (!data?.items) return [];
         return data.items.filter(article =>
+            (topicFilter === 'all' || article.category === topicFilter) &&
             (article.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || article.content.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
         );
-    }, [debouncedSearchTerm, data]);
+    }, [debouncedSearchTerm, data, topicFilter]);
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-8 md:py-10 lg:py-12">
@@ -61,7 +64,20 @@ export function HelpCenter() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         <section>
-                            <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><BookOpen /> Knowledge Base</h2>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><BookOpen /> Knowledge Base</h2>
+                                <Select value={topicFilter} onValueChange={setTopicFilter}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Filter by topic" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Topics</SelectItem>
+                                        <SelectItem value="integrations">Integrations</SelectItem>
+                                        <SelectItem value="setup">Setup</SelectItem>
+                                        <SelectItem value="automations">Automations</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-4">
                                 {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />) :
                                 filteredArticles.map(article => (

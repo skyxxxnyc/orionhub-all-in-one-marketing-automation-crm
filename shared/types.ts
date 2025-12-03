@@ -169,6 +169,8 @@ export interface Funnel {
   name: string;
   steps: FunnelStep[];
   createdAt: number;
+  isTemplate?: boolean;
+  category?: string;
 }
 // Calendar & Scheduling Types
 export interface Appointment {

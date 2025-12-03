@@ -19,6 +19,7 @@ import { useAuthStore } from '@/lib/mock-auth';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
@@ -46,12 +47,15 @@ export function Funnels() {
     createFunnelMutation.mutate({ templateId, orgId: currentOrg?.id });
   };
   const funnels = useMemo(() => {
-    let items = data?.items.filter(f => !f.isTemplate) ?? [];
+    let items = data?.items ?? [];
+    if (funnelFilter === 'funnel') {
+      items = items.filter(f => !(f.isTemplate ?? false));
+    }
     if (search) {
       items = items.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
     }
     return items;
-  }, [data, search]);
+  }, [data, search, funnelFilter]);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
@@ -76,6 +80,15 @@ export function Funnels() {
         </div>
         <div className="mb-4 flex flex-col md:flex-row gap-4">
           <Input placeholder="Search funnels..." value={search} onChange={e => setSearch(e.target.value)} className="flex-grow" />
+          <Select value={funnelFilter} onValueChange={setFunnelFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Funnels</SelectItem>
+              <SelectItem value="funnel">My Funnels</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Card>
           <CardContent>
@@ -107,7 +120,10 @@ export function Funnels() {
                       className="cursor-pointer"
                       whileHover={{ scale: 1.01 }}
                     >
-                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.steps[0]?.pageId}`)}>{funnel.name}</TableCell>
+                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.steps[0]?.pageId}`)}>
+                        {funnel.name}
+                        {funnel.isTemplate && <Badge variant="outline" className="ml-2">Template</Badge>}
+                      </TableCell>
                       <TableCell onClick={() => setSequencerOpen(funnel)}>{funnel.steps.length}</TableCell>
                       <TableCell>{format(new Date(funnel.createdAt), 'PP')}</TableCell>
                       <TableCell>--</TableCell>

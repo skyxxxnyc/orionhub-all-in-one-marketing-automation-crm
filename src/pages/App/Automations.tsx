@@ -55,6 +55,15 @@ export function Automations() {
     onSuccess: () => toast.success('Workflow saved as template!'),
     onError: () => toast.error('Failed to save template.'),
   });
+  const createWorkflowMutation = useMutation({
+    mutationFn: (data: { templateId: string, orgId?: string }) => api<WorkflowState>('/api/workflows', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (newWorkflow) => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      handleSelectWorkflow(newWorkflow);
+      setTemplateSheetOpen(false);
+    },
+    onError: () => toast.error('Failed to create workflow from template.'),
+  });
   const handleSelectWorkflow = (workflow: WorkflowState) => {
     setSelectedWorkflow(workflow);
     setNodes(workflow.nodes);
@@ -84,15 +93,7 @@ export function Automations() {
     );
   };
   const handleTemplateSelect = (template: WorkflowState) => {
-    const newWorkflow: WorkflowState = {
-      ...template,
-      id: `wf-${crypto.randomUUID()}`,
-      name: `Copy of ${template.name}`,
-      isTemplate: false,
-      orgId: currentOrg?.id,
-    };
-    handleSelectWorkflow(newWorkflow);
-    setTemplateSheetOpen(false);
+    createWorkflowMutation.mutate({ templateId: template.id, orgId: currentOrg?.id });
   };
   if (selectedWorkflow) {
     return (
@@ -115,7 +116,7 @@ export function Automations() {
               onConnect={onConnect} onNodeClick={onNodeClick} onPaneClick={onPaneClick}
               nodeTypes={nodeTypes} fitView
               proOptions={{ hideAttribution: true }}
-              aria-label="Workflow canvas" role="application"
+              aria-label="Workflow editor canvas" role="application"
             >
               <Controls />
               <MiniMap aria-hidden="true" />

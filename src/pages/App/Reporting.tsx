@@ -49,7 +49,11 @@ export function Reporting() {
             </Card>
           </motion.div>
         )}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, staggerChildren: 0.1 }}>
+        <motion.div 
+          variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+          initial="hidden"
+          animate="show"
+        >
           <AdvancedReporting />
         </motion.div>
       </div>
