@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, Mail, MessageSquare, FileText, Calendar } from "lucide-react";
+import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, Mail, MessageSquare, FileText, Calendar, AreaChart } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,7 @@ const navItems = [
   { href: "/app/campaigns", icon: Mail, label: "Campaigns" },
   { href: "/app/automations", icon: Workflow, label: "Automations" },
   { href: "/app/funnels", icon: FileText, label: "Funnels & Pages" },
+  { href: "/app/reporting", icon: AreaChart, label: "Reporting" },
 ];
 export function AppSidebar(): JSX.Element {
   const location = useLocation();

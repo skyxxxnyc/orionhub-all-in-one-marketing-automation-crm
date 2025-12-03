@@ -1,16 +1,25 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing } from "@shared/types";
-import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES } from "@shared/mock-data";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey } from "@shared/types";
+import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
-  // Existing routes (Users, Chats, Contacts, etc.) are unchanged...
-  app.get('/api/users', async (c) => { await UserEntity.ensureSeed(c.env); const p = await UserEntity.list(c.env); return ok(c, p); });
-  app.get('/api/chats', async (c) => { await ChatBoardEntity.ensureSeed(c.env); const p = await ChatBoardEntity.list(c.env); return ok(c, p); });
-  app.get('/api/contacts', async (c) => { await ContactEntity.ensureSeed(c.env); const p = await ContactEntity.list(c.env); return ok(c, p); });
+  // Seed all data on first request to any user route
+  app.use('/api/*', async (c, next) => {
+    await Promise.all([
+      UserEntity.ensureSeed(c.env), ChatBoardEntity.ensureSeed(c.env), ContactEntity.ensureSeed(c.env),
+      PipelineEntity.ensureSeed(c.env), DealEntity.ensureSeed(c.env), WorkflowEntity.ensureSeed(c.env),
+      WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
+      BillingEntity.ensureSeed(c.env)
+    ]);
+    await next();
+  });
+  // Existing routes...
+  app.get('/api/users', async (c) => ok(c, await UserEntity.list(c.env)));
+  app.get('/api/chats', async (c) => ok(c, await ChatBoardEntity.list(c.env)));
+  app.get('/api/contacts', async (c) => ok(c, await ContactEntity.list(c.env)));
   app.get('/api/pipelines/:id', async (c) => {
-    await PipelineEntity.ensureSeed(c.env); await DealEntity.ensureSeed(c.env);
     const pipelineEntity = new PipelineEntity(c.env, c.req.param('id'));
     if (!await pipelineEntity.exists()) return notFound(c, 'pipeline not found');
     const pipeline = await pipelineEntity.getState();
@@ -26,17 +35,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await deal.patch({ stage, updatedAt: Date.now() });
     return ok(c, await deal.getState());
   });
-  // --- NEW & ENHANCED WORKFLOW ROUTES ---
-  // List workflows (excluding templates)
+  // Workflow routes...
   app.get('/api/workflows', async (c) => {
-    await WorkflowEntity.ensureSeed(c.env);
     const page = await WorkflowEntity.list(c.env);
     page.items = page.items.filter(w => !w.isTemplate);
     return ok(c, page);
   });
-  // List workflow templates
   app.get('/api/workflows/templates', async (c) => {
-    await WorkflowEntity.ensureSeed(c.env);
     const page = await WorkflowEntity.list(c.env);
     page.items = page.items.filter(w => w.isTemplate);
     return ok(c, page);
@@ -53,40 +58,34 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!nodes || !edges) return bad(c, 'nodes and edges are required');
     return ok(c, await workflow.update(nodes, edges));
   });
-  // Simulate a workflow run
-  app.post('/api/workflows/:id/simulate', async (c) => {
-    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
-    if (!await workflow.exists()) return notFound(c, 'workflow not found');
-    const { contactId } = await c.req.json() as { contactId: string };
-    if (!contactId) return bad(c, 'contactId is required');
-    const log = await workflow.simulateRun(contactId);
-    return ok(c, log);
+  // --- NEW ROUTES FOR PHASE 13 ---
+  // Webhooks
+  app.get('/api/webhooks', async (c) => ok(c, await WebhookEntity.list(c.env)));
+  app.post('/api/webhooks/:id/test', async (c) => {
+    const webhook = new WebhookEntity(c.env, c.req.param('id'));
+    if (!await webhook.exists()) return notFound(c);
+    await webhook.test(); // This just console.logs in the mock
+    return ok(c, { message: 'Test event sent' });
   });
-  // Pause/Resume a workflow
-  app.patch('/api/workflows/:id/pause', async (c) => {
-    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
-    if (!await workflow.exists()) return notFound(c);
-    return ok(c, await workflow.pause());
+  // API Keys
+  app.get('/api/apikeys', async (c) => ok(c, await APIKeyEntity.list(c.env)));
+  app.post('/api/apikeys', async (c) => {
+    // In a real app, you'd get userId from auth context
+    const key = await APIKeyEntity.generate(c.env, 'u1', ['*:*']);
+    return ok(c, key);
   });
-  app.patch('/api/workflows/:id/resume', async (c) => {
-    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
-    if (!await workflow.exists()) return notFound(c);
-    return ok(c, await workflow.resume());
+  // Billing
+  app.get('/api/billing/:orgId', async (c) => {
+    const billing = new BillingEntity(c.env, `bill-${c.req.param('orgId').slice(-1)}`);
+    if (!await billing.exists()) return notFound(c);
+    return ok(c, await billing.getState());
   });
-  // Get analytics for a workflow (mocked)
-  app.get('/api/workflows/:id/analytics', (c) => {
-    return ok(c, { runs: 125, completions: 110, dropoffs: 15 });
+  app.post('/api/billing/:orgId/upgrade', async (c) => {
+    return ok(c, { url: 'https://stripe.com/mock-checkout' });
   });
-  // Get journey for a contact (mocked)
-  app.get('/api/journeys/:contactId', async (c) => {
-    const contact = new ContactEntity(c.env, c.req.param('contactId'));
-    if (!await contact.exists()) return notFound(c);
-    const state = await contact.getState();
-    // Mock journey from activities
-    const journey = state.activities.filter(a => a.type === 'automation');
-    return ok(c, journey);
-  });
-  // Other existing routes...
+  // Reports
+  app.get('/api/reports', async (c) => ok(c, await ReportEntity.list(c.env)));
+  // Other routes...
   app.get('/api/campaigns', async (c) => { await CampaignEntity.ensureSeed(c.env); return ok(c, await CampaignEntity.list(c.env)); });
   app.get('/api/inbox', async (c) => { await ConversationEntity.ensureSeed(c.env); return ok(c, await ConversationEntity.list(c.env)); });
   app.get('/api/calendar/events', async (c) => { await CalendarEventEntity.ensureSeed(c.env); return ok(c, await CalendarEventEntity.list(c.env)); });
@@ -98,13 +97,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       if (mockPage) { await PageEntity.create(c.env, mockPage); return ok(c, mockPage); }
       return notFound(c);
     }
-    return ok(c, await page.getState());
-  });
-  app.put('/api/pages/:id', async (c) => {
-    const page = new PageEntity(c.env, c.req.param('id'));
-    if (!await page.exists()) return notFound(c);
-    const patch = await c.req.json() as Partial<Page>;
-    await page.patch(patch);
     return ok(c, await page.getState());
   });
 }

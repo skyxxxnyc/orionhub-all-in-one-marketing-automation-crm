@@ -138,6 +138,13 @@ export interface Page {
     conversions: number;
   };
   createdAt: number;
+  seo?: {
+    title: string;
+    description: string;
+    image?: string;
+    keywords?: string[];
+  };
+  embedCode?: string;
 }
 export interface FunnelStep {
   id: string;
@@ -217,4 +224,22 @@ export interface Role {
   id: string;
   name: 'admin' | 'user' | 'client';
   permissions: string[]; // e.g., ['contacts:write', 'billing:read']
+}
+// New types for Phase 13
+export interface Webhook {
+  id: string;
+  url: string;
+  events: string[];
+  active: boolean;
+}
+export interface APIKey {
+  id: string;
+  key: string;
+  permissions: string[];
+}
+export interface ReportMetrics {
+  totalContacts?: number;
+  conversions?: number;
+  revenue?: number;
+  [key: string]: number | undefined;
 }

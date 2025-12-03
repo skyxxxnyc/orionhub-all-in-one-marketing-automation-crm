@@ -30,3 +30,14 @@ export const GenericElement = ({ data }: { data: PageElement }) => {
       return <div className="p-2 border border-dashed rounded">{data.type}</div>;
   }
 };
+export function generateMetaTags(seo: { title: string; description: string; image?: string }) {
+  let tags = `<title>${seo.title}</title>\n`;
+  tags += `<meta name="description" content="${seo.description}">\n`;
+  if (seo.image) {
+    tags += `<meta property="og:image" content="${seo.image}">\n`;
+  }
+  return tags;
+}
+export function generateEmbedCode(pageId: string) {
+  return `<iframe src="${window.location.origin}/p/${pageId}" style="width:100%;height:500px;border:0;"></iframe>`;
+}

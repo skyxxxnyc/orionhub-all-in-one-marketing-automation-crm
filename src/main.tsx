@@ -1,7 +1,7 @@
 import '@/lib/errorReporter';
 import { enableMapSet } from "immer";
 enableMapSet();
-import React, { StrictMode, useEffect } from 'react';
+import React, { StrictMode, useEffect, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ import { Funnels } from '@/pages/App/Funnels';
 import { PageEditor } from '@/pages/App/PageEditor';
 import { Calendar as CalendarPage } from '@/pages/App/Calendar';
 import { Settings } from '@/pages/App/Settings';
+import { Reporting } from '@/pages/App/Reporting';
 // Layouts & Auth
 import { useAuthStore } from '@/lib/mock-auth';
 import { AppRoutes } from '@/components/AppRoutes';
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
       { path: "funnels", element: <Funnels /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "settings", element: <Settings /> },
+      { path: "reporting", element: <Reporting /> },
       { path: "funnels/:id", element: <PageEditor /> },
       { path: "pages/:id/edit", element: <PageEditor /> },
     ],
@@ -60,7 +62,9 @@ export default function App() {
   }, [checkAuth]);
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <RouterProvider router={router} />
+      </Suspense>
       <Toaster richColors closeButton />
     </QueryClientProvider>
   );

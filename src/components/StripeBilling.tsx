@@ -4,7 +4,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/mock-auth';
 import { api } from '@/lib/api-client';
 import type { Billing } from '@shared/types';
@@ -12,18 +11,18 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 export function StripeBilling() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
-  const { data: billing, isLoading } = useQuery({
+  const { data: billing, isLoading } from useQuery({
     queryKey: ['billing', currentOrg?.id],
-    queryFn: () => api(`/api/billing/${currentOrg!.id}`) as Promise<Billing>,
+    queryFn: () => api<Billing>(`/api/billing/${currentOrg!.id}`),
     enabled: !!currentOrg,
   });
   const handleUpgrade = async () => {
     if (!currentOrg) return;
     try {
-      const { url } = await (api(`/api/billing/${currentOrg.id}/upgrade`, {
+      const { url } = await api<{ url: string }>(`/api/billing/${currentOrg.id}/upgrade`, {
         method: 'POST',
         body: JSON.stringify({ plan: 'pro' }),
-      }) as Promise<{ url: string }>);
+      });
       toast.info('Redirecting to Stripe...');
       window.open(url, '_blank');
     } catch (error) {
