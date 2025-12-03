@@ -20,3 +20,19 @@ export interface ChatMessage {
   text: string;
   ts: number; // epoch millis
 }
+// New Contact types for Phase 2
+export interface ContactActivity {
+  type: 'email' | 'sms' | 'note' | 'automation';
+  content: string;
+  date: number; // epoch millis
+}
+export interface Contact {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  tags: string[];
+  customFields: Record<string, any>;
+  activities: ContactActivity[];
+  createdAt: number; // epoch millis
+}

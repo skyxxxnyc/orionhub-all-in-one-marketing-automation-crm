@@ -4,6 +4,7 @@ enableMapSet();
 import React, { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css';
@@ -20,6 +21,7 @@ import { Pipeline } from '@/pages/App/Pipeline';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuthStore } from '@/lib/mock-auth';
 import { Skeleton } from '@/components/ui/skeleton';
+const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,13 +47,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   return isAuthenticated ? <>{children}</> : null;
 }
-const AppRoutes = () => (
-  <ProtectedRoute>
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
-  </ProtectedRoute>
-);
+function AppRoutes() {
+  return (
+    <ProtectedRoute>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </ProtectedRoute>
+  );
+}
 const router = createBrowserRouter([
   {
     path: "/",
@@ -78,16 +82,23 @@ const router = createBrowserRouter([
       { path: "contacts", element: <Contacts /> },
       { path: "contacts/:id", element: <ContactDetail /> },
       { path: "pipeline", element: <Pipeline /> },
-      // Placeholder for automations
       { path: "automations", element: <div>Automations Page</div> },
     ],
   },
 ]);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      <Toaster richColors closeButton />
+    </QueryClientProvider>
+  );
+}
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <RouterProvider router={router} />
-      <Toaster richColors closeButton />
+      <App />
     </ErrorBoundary>
   </StrictMode>,
 );
+export default App;
