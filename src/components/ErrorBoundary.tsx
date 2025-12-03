@@ -1,82 +1,57 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { errorReporter } from "@/lib/errorReporter";
-import { ErrorFallback } from "./ErrorFallback";
-
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
+import { errorReporter } from '@/lib/errorReporter';
 interface Props {
   children: ReactNode;
-  fallback?: (
-    error: Error,
-    errorInfo: ErrorInfo,
-    retry: () => void
-  ) => ReactNode;
 }
-
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  error?: Error;
 }
-
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null,
-    errorInfo: null,
   };
-
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+    return { hasError: true, error };
   }
-
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Update state with error info
-    this.setState({ errorInfo });
-
-    // Report error to backend
-    errorReporter.report({
-      message: error.message,
-      stack: error.stack || "",
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-      errorBoundaryProps: {
-        componentName: this.constructor.name,
-      },
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-      level: "error",
-    });
+    console.error("Uncaught error:", error, errorInfo);
+    errorReporter.logError(error, errorInfo);
   }
-
-  private retry = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
-    // Reload the page to ensure clean state
-    window.location.reload();
-  };
-
-  private goHome = () => {
-    window.location.href = "/";
-  };
-
   public render() {
-    if (this.state.hasError && this.state.error) {
-      if (this.props.fallback) {
-        return this.props.fallback(
-          this.state.error,
-          this.state.errorInfo!,
-          this.retry
-        );
-      }
-
-      // Use shared ErrorFallback component
+    if (this.state.hasError) {
       return (
-        <ErrorFallback
-          error={this.state.error}
-          onRetry={this.retry}
-          onGoHome={this.goHome}
-        />
+        <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
+          <Card className="max-w-md w-full text-center shadow-lg animate-scale-in">
+            <CardHeader>
+              <div className="mx-auto bg-destructive/10 rounded-full p-3 w-fit">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+              <CardTitle className="mt-4 text-2xl font-display">Oops! Something went wrong.</CardTitle>
+              <CardDescription>
+                We've been notified of the issue and are working to fix it. Please try again later.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => window.location.reload()}>
+                Reload Page
+              </Button>
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <details className="mt-4 text-left bg-muted p-2 rounded-md text-xs">
+                  <summary>Error Details</summary>
+                  <pre className="mt-2 whitespace-pre-wrap">
+                    <code>{this.state.error.toString()}</code>
+                  </pre>
+                </details>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       );
     }
-
     return this.props.children;
   }
 }

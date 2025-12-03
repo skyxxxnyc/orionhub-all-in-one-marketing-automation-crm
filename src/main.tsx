@@ -41,7 +41,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [isLoading, isAuthenticated, navigate, location]);
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
@@ -64,21 +64,9 @@ function AppRoutes() {
   );
 }
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomePage />,
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/register",
-    element: <RegisterPage />,
-    errorElement: <RouteErrorBoundary />,
-  },
+  { path: "/", element: <HomePage />, errorElement: <RouteErrorBoundary /> },
+  { path: "/login", element: <LoginPage />, errorElement: <RouteErrorBoundary /> },
+  { path: "/register", element: <RegisterPage />, errorElement: <RouteErrorBoundary /> },
   {
     path: "/app",
     element: <AppRoutes />,
@@ -95,12 +83,16 @@ const router = createBrowserRouter([
       { path: "funnels", element: <Funnels /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "settings", element: <Settings /> },
-      { path: "funnels/:id", element: <PageEditor /> }, // Simplified for now
+      { path: "funnels/:id", element: <PageEditor /> },
       { path: "pages/:id/edit", element: <PageEditor /> },
     ],
   },
 ]);
 function App() {
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
@@ -108,11 +100,14 @@ function App() {
     </QueryClientProvider>
   );
 }
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-);
-export default App;
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container);
+  root.render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>,
+  );
+}
