@@ -151,10 +151,11 @@ function encodeBase64(input: string): string {
     // ignore
   }
   try {
-    // Prefer checking globalThis to avoid direct Buffer references that need ts-ignore
-    const g = (globalThis as any);
-    if (g?.Buffer && typeof g.Buffer.from === 'function') {
-      return g.Buffer.from(input, 'utf8').toString('base64');
+    // Node / bundlers often polyfill Buffer
+    // @ts-ignore - Buffer may not be present on some runtimes, but we attempt.
+    if (typeof Buffer !== 'undefined') {
+      // @ts-ignore
+      return Buffer.from(input, 'utf8').toString('base64');
     }
   } catch (_) {
     // ignore
