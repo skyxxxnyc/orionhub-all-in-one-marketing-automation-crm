@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -11,8 +10,6 @@ import { Search, Star } from 'lucide-react';
 import { useAuthStore } from '@/lib/mock-auth';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { toast } from 'sonner';
-import { Checkbox } from './ui/checkbox';
 import { Button } from './ui/button';
 const fetchTemplates = async (orgId?: string) => api<{ items: Template[] }>('/api/templates', { query: { orgId } });
 interface TemplateGalleryProps {
@@ -20,7 +17,6 @@ interface TemplateGalleryProps {
 }
 export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
   const currentOrg = useAuthStore(s => s.currentOrg);
-  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['templates', currentOrg?.id],
     queryFn: () => fetchTemplates(currentOrg?.id),
@@ -50,13 +46,10 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
     return data.items.filter(template =>
       (activeTab === 'all' || template.type === activeTab) &&
       (template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.category?.toLowerCase().includes(searchTerm.toLowerCase()))
+        template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.category?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [data, searchTerm, activeTab]);
-  const handleSelect = (template: Template) => {
-    onSelect(template);
-  };
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: Template) => {
     event.dataTransfer.setData('application/reactflow-template', JSON.stringify(template));
     event.dataTransfer.effectAllowed = 'move';
@@ -98,7 +91,7 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
               whileHover={{ scale: 1.05, y: -4, zIndex: 10, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
               transition={{ duration: 0.2 }}
               className="cursor-pointer"
-              onClick={() => handleSelect(template)}
+              onClick={() => onSelect(template)}
               draggable
               onDragStart={(e) => onDragStart(e, template)}
             >

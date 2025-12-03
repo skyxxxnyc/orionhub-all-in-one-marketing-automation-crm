@@ -66,6 +66,7 @@ export class ArticleEntity extends IndexedEntity<Article> {
   static readonly indexName = "articles";
   static readonly initialState: Article = { id: "", title: "", category: "", content: "", role: "all" };
   static seedData = MOCK_ARTICLES;
+  async updateCategory(cat: string) { return this.patch({ category: cat }); }
 }
 // CHAT SESSION ENTITY
 export class ChatSessionEntity extends IndexedEntity<ChatSession> {

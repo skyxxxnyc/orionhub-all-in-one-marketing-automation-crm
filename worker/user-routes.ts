@@ -3,7 +3,6 @@ import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity, ChatSessionEntity, ArticleEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template, ChatSession, Article } from "@shared/types";
-import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES, MOCK_PAGE_TEMPLATES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
   app.use('/api/*', async (c, next) => {
