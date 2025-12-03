@@ -60,6 +60,13 @@ export class TemplateEntity extends IndexedEntity<Template> {
   static seedData = MOCK_TEMPLATE_GALLERY;
   async share(isPublic: boolean) { return this.patch({ public: isPublic }); }
 }
+// ARTICLE ENTITY
+export class ArticleEntity extends IndexedEntity<Article> {
+  static readonly entityName = "article";
+  static readonly indexName = "articles";
+  static readonly initialState: Article = { id: "", title: "", category: "", content: "", role: "all" };
+  static seedData = MOCK_ARTICLES;
+}
 // CHAT SESSION ENTITY
 export class ChatSessionEntity extends IndexedEntity<ChatSession> {
   static readonly entityName = "chatSession"; static readonly indexName = "chatSessions";

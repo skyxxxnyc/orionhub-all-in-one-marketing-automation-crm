@@ -5,9 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Search, BookOpen, HelpCircle, Video } from 'lucide-react';
 import { useAuthStore } from '@/lib/mock-auth';
-import { MOCK_ARTICLES } from '@shared/mock-data';
 import { SupportTicketSystem } from '@/components/SupportTicketSystem';
 import { useDebounce } from 'react-use';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api-client';
+import type { Article } from '@shared/types';
+import { Skeleton } from '@/components/ui/skeleton';
 const faqs = [
     { title: "What is a workflow?", content: "A workflow is an automated sequence of actions, triggers, and conditions that you can set up to engage with your contacts." },
     { title: "How do I import contacts?", content: "You can import contacts via a CSV file from the Contacts page. Ensure your file has 'name' and 'email' columns." },
@@ -19,18 +22,24 @@ const tutorials = [
     { title: "Creating an Email Campaign", videoId: "dQw4w9WgXcQ" },
     { title: "Managing Your Sales Pipeline", videoId: "dQw4w9WgXcQ" },
 ];
+const fetchArticles = async (role?: string) => api<{ items: Article[] }>('/api/articles', { query: { role } });
 export function HelpCenter() {
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const user = useAuthStore(s => s.user);
     const role = useAuthStore(s => s.role);
+    const { data, isLoading } = useQuery({
+        queryKey: ['articles', role],
+        queryFn: () => fetchArticles(role),
+        enabled: !!role,
+    });
     useDebounce(() => setDebouncedSearchTerm(searchTerm), 300, [searchTerm]);
     const filteredArticles = useMemo(() => {
-        return MOCK_ARTICLES.filter(article =>
-            (article.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || article.content.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
-            (article.role === 'all' || article.role === role)
+        if (!data?.items) return [];
+        return data.items.filter(article =>
+            (article.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || article.content.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
         );
-    }, [debouncedSearchTerm, role]);
+    }, [debouncedSearchTerm, data]);
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-8 md:py-10 lg:py-12">
@@ -54,14 +63,15 @@ export function HelpCenter() {
                         <section>
                             <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><BookOpen /> Knowledge Base</h2>
                             <div className="space-y-4">
-                                {filteredArticles.map(article => (
+                                {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />) :
+                                filteredArticles.map(article => (
                                     <motion.div key={article.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
                                         <Card className="hover:shadow-md transition-shadow">
                                             <CardHeader>
                                                 <CardTitle>{article.title}</CardTitle>
                                             </CardHeader>
                                             <CardContent>
-                                                <p className="text-muted-foreground line-clamp-2">{article.content}</p>
+                                                <p className="text-muted-foreground line-clamp-2" dangerouslySetInnerHTML={{ __html: article.content.replace(/<pre>.*?<\/pre>/gs, '[Code Snippet]') }} />
                                             </CardContent>
                                         </Card>
                                     </motion.div>
@@ -81,6 +91,9 @@ export function HelpCenter() {
                         </section>
                     </div>
                     <div className="space-y-8 lg:col-span-1">
+                         <section>
+                           <SupportTicketSystem articles={data?.items} />
+                        </section>
                         <section>
                             <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><Video /> Tutorials</h2>
                             <div className="space-y-4">
@@ -97,9 +110,6 @@ export function HelpCenter() {
                                     </Card>
                                 ))}
                             </div>
-                        </section>
-                        <section>
-                           <SupportTicketSystem />
                         </section>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity, ChatSessionEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity, ChatSessionEntity, ArticleEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template, ChatSession } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template, ChatSession, Article } from "@shared/types";
 import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES, MOCK_PAGE_TEMPLATES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
@@ -14,8 +14,34 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
       TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env), PageEntity.ensureSeed(c.env),
       ProjectEntity.ensureSeed(c.env), TemplateEntity.ensureSeed(c.env), ChatSessionEntity.ensureSeed(c.env),
+      ArticleEntity.ensureSeed(c.env),
     ]);
     await next();
+  });
+  // --- Article Routes ---
+  app.get('/api/articles', async (c) => {
+    const { role } = c.req.query();
+    const { items } = await ArticleEntity.list(c.env);
+    const filtered = items.filter(a => a.role === 'all' || a.role === role);
+    return ok(c, { items: filtered });
+  });
+  app.post('/api/articles', async (c) => {
+    const data = await c.req.json() as Partial<Article>;
+    if (!data.title || !data.content) return bad(c, 'title and content are required');
+    const articleData = { ...ArticleEntity.initialState, ...data, id: crypto.randomUUID() };
+    const article = await ArticleEntity.create(c.env, articleData);
+    return ok(c, article);
+  });
+  app.put('/api/articles/:id', async (c) => {
+    const article = new ArticleEntity(c.env, c.req.param('id'));
+    if (!await article.exists()) return notFound(c);
+    const data = await c.req.json();
+    await article.patch(data);
+    return ok(c, await article.getState());
+  });
+  app.delete('/api/articles/:id', async (c) => {
+    const deleted = await ArticleEntity.delete(c.env, c.req.param('id'));
+    return ok(c, { deleted });
   });
   // --- Project & Template Routes ---
   app.get('/api/projects', async (c) => {

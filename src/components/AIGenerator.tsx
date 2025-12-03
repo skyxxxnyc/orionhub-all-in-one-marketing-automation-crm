@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -11,25 +11,29 @@ import { Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/mock-auth';
-import type { AIGeneration } from '@shared/types';
+import type { AIGeneration, Project } from '@shared/types';
 interface AIGeneratorProps {
   onGenerate: () => void;
 }
 export function AIGenerator({ onGenerate }: AIGeneratorProps) {
   const navigate = useNavigate();
   const currentOrg = useAuthStore(s => s.currentOrg);
-  const [history, setHistory] = useState<AIGeneration[]>(() => {
-    try {
-      const saved = localStorage.getItem('ai_generation_history');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
+  const [history, setHistory] = useState<AIGeneration[]>([]);
+  useEffect(() => {
+    if (currentOrg) {
+      try {
+        const saved = localStorage.getItem(`ai_history_${currentOrg.id}`);
+        setHistory(saved ? JSON.parse(saved) : []);
+      } catch {
+        setHistory([]);
+      }
     }
-  });
-  const { register, handleSubmit, watch } = useForm({
+  }, [currentOrg]);
+  const { register, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       prompt: 'A simple lead capture funnel for a real estate agency.',
       type: 'funnel',
+      industry: 'real-estate',
     }
   });
   const generateMutation = useMutation({
@@ -39,18 +43,21 @@ export function AIGenerator({ onGenerate }: AIGeneratorProps) {
         body: JSON.stringify({ ...data, orgId: currentOrg?.id }),
       }),
     onSuccess: (data: any) => {
-      toast.success('Template generated successfully!');
-      const newHistoryItem = { id: data.id, prompt: watch('prompt'), type: watch('type'), output: data, orgId: currentOrg!.id, timestamp: Date.now() };
-      const updatedHistory = [newHistoryItem, ...history].slice(0, 5);
+      toast.success('Project generated successfully!');
+      const newHistoryItem: AIGeneration = { id: data.id, prompt: watch('prompt'), type: watch('type'), output: data, orgId: currentOrg!.id, timestamp: Date.now() };
+      const updatedHistory = [newHistoryItem, ...history].slice(0, 10);
       setHistory(updatedHistory);
-      localStorage.setItem('ai_generation_history', JSON.stringify(updatedHistory));
+      if (currentOrg) {
+        localStorage.setItem(`ai_history_${currentOrg.id}`, JSON.stringify(updatedHistory));
+      }
       onGenerate();
-      navigate('/app/projects'); // Navigate to projects to see the new project
+      navigate('/app/projects');
     },
     onError: (error: Error) => toast.error(`Generation failed: ${error.message}`),
   });
-  const onSubmit = (data: { prompt: string; type: string }) => {
-    generateMutation.mutate(data);
+  const onSubmit = (data: { prompt: string; type: string; industry: string }) => {
+    const fullPrompt = `Full project: ${data.prompt}. Industry: ${data.industry}. Include ${data.type} structure.`;
+    generateMutation.mutate({ prompt: fullPrompt, type: data.type });
   };
   return (
     <div className="py-4 space-y-6">
@@ -63,14 +70,30 @@ export function AIGenerator({ onGenerate }: AIGeneratorProps) {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <Label htmlFor="type">What do you want to create?</Label>
-              <Select defaultValue="funnel" onValueChange={(value) => register('type').onChange({ target: { value } })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="funnel">Funnel</SelectItem>
-                  <SelectItem value="automation">Automation</SelectItem>
-                  <SelectItem value="page">Landing Page</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller name="type" control={control} render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="funnel">Funnel</SelectItem>
+                    <SelectItem value="automation">Automation</SelectItem>
+                    <SelectItem value="page">Landing Page</SelectItem>
+                  </SelectContent>
+                </Select>
+              )} />
+            </div>
+            <div>
+              <Label htmlFor="industry">Industry</Label>
+              <Controller name="industry" control={control} render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="saas">SaaS</SelectItem>
+                    <SelectItem value="e-commerce">E-commerce</SelectItem>
+                    <SelectItem value="real-estate">Real Estate</SelectItem>
+                    <SelectItem value="agency">Agency</SelectItem>
+                  </SelectContent>
+                </Select>
+              )} />
             </div>
             <div>
               <Label htmlFor="prompt">Describe your project</Label>
@@ -92,9 +115,12 @@ export function AIGenerator({ onGenerate }: AIGeneratorProps) {
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Recent Generations</h3>
           {history.map(item => (
-            <Card key={item.id} className="p-2 text-xs">
-              <p className="font-semibold truncate">{item.prompt}</p>
-              <p className="text-muted-foreground">Type: {item.type} - {new Date(item.timestamp).toLocaleDateString()}</p>
+            <Card key={item.id} className="p-3">
+              <p className="font-semibold truncate text-sm">{item.prompt}</p>
+              <div className="flex justify-between items-center mt-1">
+                <Badge variant="outline" className="capitalize">{item.type}</Badge>
+                <span className="text-xs text-muted-foreground">{new Date(item.timestamp).toLocaleDateString()}</span>
+              </div>
             </Card>
           ))}
         </div>
