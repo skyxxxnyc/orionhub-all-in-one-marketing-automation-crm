@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
 const fetchEmailTemplates = async () => api<{ items: EmailTemplate[] }>('/api/templates/email');
 const fetchSmsTemplates = async () => api<{ items: SMSTemplate[] }>('/api/templates/sms');
-const fetchPageTemplates = async () => api<{ items: Page[] }>('/api/templates/pages'); // Mock endpoint
+const fetchPageTemplates = async () => api<{ items: Page[] }>('/api/pages/templates');
 interface TemplateLibraryProps {
   type: 'email' | 'sms' | 'page';
   onSelect: (id: string) => void;
@@ -31,7 +31,7 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)
+          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)
         ) : (
           templates.map((template) => (
             <motion.div
@@ -50,7 +50,7 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
                 </CardHeader>
                 <CardContent>
                   {'body' in template && template.body ? (
-                    <div className={cn("text-sm text-muted-foreground line-clamp-2")}>{template.body}</div>
+                    <div className={cn("text-sm text-muted-foreground line-clamp-2")} dangerouslySetInnerHTML={{ __html: template.body }} />
                   ) : 'content' in template ? (
                      <div className={cn("text-sm text-muted-foreground line-clamp-2")}>Page template with {template.content.length} elements.</div>
                   ) : (

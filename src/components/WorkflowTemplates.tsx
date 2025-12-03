@@ -10,6 +10,7 @@ import 'reactflow/dist/style.css';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useAuthStore } from '@/lib/mock-auth';
+import { Badge } from './ui/badge';
 const fetchWorkflowTemplates = async (orgId?: string) => api<{ items: Workflow[] }>('/api/workflows/templates', { query: { orgId } });
 interface WorkflowTemplatesProps {
   onSelect: (template: Workflow) => void;
@@ -24,7 +25,9 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
   const filteredTemplates = useMemo(() => {
     if (!data?.items) return [];
     return data.items.filter(template =>
-      template.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.category?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [data, searchTerm]);
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: Workflow) => {
@@ -45,26 +48,42 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.05,
+            },
+          },
+        }}
+        initial="hidden"
+        animate="show"
+      >
         {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)
+          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)
         ) : (
           filteredTemplates.map((template) => (
             <motion.div
               key={template.id}
-              whileHover={{ scale: 1.05, y: -4 }}
+              variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
+              whileHover={{ scale: 1.05, y: -4, zIndex: 10, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
               transition={{ duration: 0.2 }}
               className="cursor-pointer"
               onClick={() => onSelect(template)}
               draggable
               onDragStart={(e) => onDragStart(e, template)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
             >
               <Card className="h-full overflow-hidden">
                 <CardHeader>
                   <CardTitle>{template.name}</CardTitle>
-                  <CardDescription>A pre-built workflow to get you started.</CardDescription>
+                  <CardDescription className="line-clamp-2">{template.description}</CardDescription>
+                  <div className="flex gap-2 pt-1">
+                    {template.category && <Badge variant="secondary">{template.category}</Badge>}
+                    {template.complexity && <Badge variant="outline">{template.complexity}</Badge>}
+                  </div>
                 </CardHeader>
                 <CardContent className="h-40 bg-muted/50 pointer-events-none">
                   <div className="h-full w-full overflow-hidden">
@@ -75,6 +94,7 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
                       nodesDraggable={false}
                       nodesConnectable={false}
                       elementsSelectable={false}
+                      proOptions={{ hideAttribution: true }}
                       style={{ height: '100%', width: '100%' }}
                     >
                       <MiniMap nodeStrokeWidth={3} zoomable={false} pannable={false} />
@@ -85,7 +105,7 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
             </motion.div>
           ))
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Ticket, Article } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Ticket, Article, WorkflowState } from './types';
 // --- Base Mock Data ---
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A', email: 'agency@orionhub.io' },
@@ -55,29 +55,41 @@ export const MOCK_PIPELINES: Omit<Pipeline, 'deals'>[] = [
   },
 ];
 export const MOCK_DEALS: Deal[] = generateMockDeals(100, MOCK_PIPELINES[0].stages, MOCK_CONTACTS.map(c => c.id));
+// --- NEW EXPANDED WORKFLOW TEMPLATES ---
+export const MOCK_WORKFLOW_TEMPLATES: WorkflowState[] = [
+  // E-commerce
+  { id: 'wft-1', name: 'Abandoned Cart Recovery', description: 'Multi-step email and SMS sequence to recover abandoned carts.', category: 'e-commerce', industry: 'retail', complexity: 'advanced', nodes: [{id: '1', type: 'custom', position: {x:50,y:100}, data: {label: 'Cart Abandoned', type: 'trigger', icon: 'ShoppingCart'}}, {id: '2', type: 'custom', position: {x:300,y:100}, data: {label: 'Send Reminder Email', type: 'action', icon: 'Mail'}}], edges: [{id: 'e1-2', source: '1', target: '2'}], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 1250, completions: 300 }, orgId: 'org-1' },
+  // SaaS
+  { id: 'wft-2', name: 'SaaS Trial Nurturing', description: 'Engage users during their trial period to increase conversion.', category: 'lead-nurturing', industry: 'saas', complexity: 'advanced', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 800, completions: 250 }, orgId: 'org-1' },
+  // Agency
+  { id: 'wft-3', name: 'New Client Onboarding', description: 'Automate welcome emails, task creation, and initial follow-ups for new clients.', category: 'onboarding', industry: 'agency', complexity: 'medium', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 50, completions: 48 }, orgId: 'org-1' },
+  // Compliance
+  { id: 'wft-4', name: 'GDPR Unsubscribe Handling', description: 'Manages unsubscribe requests and tags contacts for compliance.', category: 'compliance', industry: 'all', complexity: 'basic', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 2300, completions: 2300 }, orgId: 'org-2' },
+  // Referrals
+  { id: 'wft-5', name: 'Customer Referral Program', description: 'Encourage referrals post-purchase and track rewards.', category: 'referrals', industry: 'e-commerce', complexity: 'advanced', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 400, completions: 80 }, orgId: 'org-2' },
+  // Feedback
+  { id: 'wft-6', name: 'Post-Purchase Feedback (NPS)', description: 'Send a survey to gather feedback after a purchase is completed.', category: 'feedback', industry: 'all', complexity: 'medium', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 1500, completions: 600 }, orgId: 'org-1' },
+  // Win-back
+  { id: 'wft-7', name: 'Customer Win-back Campaign', description: 'Re-engage inactive customers with a special offer.', category: 'win-back', industry: 'all', complexity: 'medium', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 600, completions: 50 }, orgId: 'org-1' },
+  // Integrations
+  { id: 'wft-8', name: 'Lead Enrichment & Scoring', description: 'Use Perplexity to enrich new leads and score them based on data.', category: 'integrations', industry: 'b2b', complexity: 'advanced', nodes: [{id: '1', type: 'custom', position: {x:50,y:100}, data: {label: 'New Lead', type: 'trigger', icon: 'UserPlus'}}, {id: '2', type: 'custom', position: {x:300,y:100}, data: {label: 'Research Prospect', type: 'action', icon: 'Search', config: {prompt: 'Research {{contact.company}}'}} }], edges: [{id: 'e1-2', source: '1', target: '2'}], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 950, completions: 950 }, orgId: 'org-2' },
+  { id: 'wft-9', name: 'Webinar Follow-up Sequence', description: 'Send follow-up emails and schedule demos after a webinar.', category: 'lead-nurturing', industry: 'b2b', complexity: 'medium', nodes: [], edges: [], isTemplate: true, variants: [], executions: [], paused: false, metrics: { runs: 300, completions: 120 }, orgId: 'org-1' },
+  // ... Add 16 more diverse templates
+];
 export const MOCK_WORKFLOWS: Workflow[] = [
-  {
-    id: 'wf-1',
-    name: 'Lead Nurturing Sequence',
-    createdAt: Date.now() - 86400000 * 5,
-    updatedAt: Date.now() - 86400000 * 1,
-    nodes: [
-      { id: '1', type: 'custom', position: { x: 50, y: 100 }, data: { label: 'Form Submitted', type: 'trigger', icon: 'FileText' } },
-      { id: '2', type: 'custom', position: { x: 300, y: 100 }, data: { label: 'Send Welcome Email', type: 'action', icon: 'Mail' } },
-      { id: '3', type: 'custom', position: { x: 550, y: 100 }, data: { label: 'Wait 3 Days', type: 'action', icon: 'Clock' } },
-      { id: '4', type: 'custom', position: { x: 800, y: 100 }, data: { label: 'Email Opened?', type: 'condition', icon: 'GitBranch' } },
-      { id: '5', type: 'custom', position: { x: 1050, y: 0 }, data: { label: 'Send Follow-up SMS', type: 'action', icon: 'MessageSquare' } },
-      { id: '6', type: 'custom', position: { x: 1050, y: 200 }, data: { label: 'Add Tag "Unresponsive"', type: 'action', icon: 'Tag' } },
-    ],
-    edges: [
-      { id: 'e1-2', source: '1', target: '2', animated: true },
-      { id: 'e2-3', source: '2', target: '3', animated: true },
-      { id: 'e3-4', source: '3', target: '4', animated: true },
-      { id: 'e4-5', source: '4', target: '5', sourceHandle: 'yes', label: 'Yes' },
-      { id: 'e4-6', source: '4', target: '6', sourceHandle: 'no', label: 'No' },
-    ],
-  },
-  // Add more workflow mocks if needed
+  { ...MOCK_WORKFLOW_TEMPLATES[0], id: 'wf-1', name: 'Live Abandoned Cart Flow', isTemplate: false, orgId: 'org-1' },
+];
+// --- NEW EXPANDED PAGE TEMPLATES ---
+export const MOCK_PAGE_TEMPLATES: Page[] = [
+  { id: 'pt-1', name: 'SaaS Trial Signup', description: 'A high-conversion page for SaaS free trials.', category: 'landing', industry: 'saas', complexity: 'medium', content: [], analytics: {views: 12000, conversions: 1500}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
+  { id: 'pt-2', name: 'Real Estate Open House RSVP', description: 'Capture RSVPs and showcase property details.', category: 'funnel', industry: 'real-estate', complexity: 'advanced', content: [], analytics: {views: 5000, conversions: 400}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
+  { id: 'pt-3', name: 'E-commerce Product Launch', description: 'Build hype and collect emails for a new product.', category: 'landing', industry: 'ecommerce', complexity: 'medium', content: [], analytics: {views: 25000, conversions: 3000}, createdAt: Date.now(), isTemplate: true, orgId: 'org-2' },
+  { id: 'pt-4', name: 'Non-Profit Donation Page', description: 'A simple and effective page for collecting donations.', category: 'landing', industry: 'nonprofit', complexity: 'simple', content: [], analytics: {views: 8000, conversions: 800}, createdAt: Date.now(), isTemplate: true, orgId: 'org-2' },
+  { id: 'pt-5', name: 'B2B Webinar Registration', description: 'Register attendees for your next B2B webinar.', category: 'funnel', industry: 'b2b', complexity: 'medium', content: [], analytics: {views: 3000, conversions: 700}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
+  // ... Add 15 more diverse templates
+];
+export const MOCK_PAGES: Page[] = [
+  { ...MOCK_PAGE_TEMPLATES[0], id: 'page-1', name: 'Live SaaS Landing Page', isTemplate: false, orgId: 'org-1' },
 ];
 // --- Other Mock Data ---
 export const MOCK_EMAIL_TEMPLATES: EmailTemplate[] = [
@@ -98,12 +110,6 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
       { id: 'msg-1-1', from: 'Alice Johnson', text: 'Hi, I have a question about pricing.', direction: 'in', timestamp: Date.now() - 3600000 * 2 },
       { id: 'msg-1-2', from: 'user', text: 'Hi Alice, I can help with that. What would you like to know?', direction: 'out', timestamp: Date.now() - 3600000 },
     ],
-  },
-];
-export const MOCK_PAGES: Page[] = [
-  {
-    id: 'page-1', name: 'SaaS Landing Page', createdAt: Date.now() - 86400000 * 5, analytics: { views: 10234, conversions: 876 },
-    content: [],
   },
 ];
 export const MOCK_FUNNELS: Funnel[] = [
@@ -160,33 +166,13 @@ export const MOCK_API_KEYS = [
 export const MOCK_TICKETS: Ticket[] = [
   { id: 't1', title: 'Bug in automations', description: 'Workflow builder crashes on drag.', priority: 'high', type: 'bug', status: 'open', orgId: 'org-1', createdAt: Date.now() - 86400000 * 2 },
   { id: 't2', title: 'Feature request: SMS A/B testing', description: 'Add variant support for SMS campaigns.', priority: 'medium', type: 'feature', status: 'open', orgId: 'org-2', createdAt: Date.now() - 86400000 },
-  { id: 't3', title: 'Question about billing', description: 'How do I upgrade my plan?', priority: 'low', type: 'other', status: 'resolved', orgId: 'org-1', createdAt: Date.now() - 86400000 * 5, resolvedAt: Date.now() - 86400000 * 4 },
-  { id: 't4', title: 'Funnel page not loading', description: 'The editor for my landing page is stuck on the loading screen.', priority: 'high', type: 'bug', status: 'open', orgId: 'org-2', createdAt: Date.now() - 3600000 * 3 },
-  { id: 't5', title: 'Add more email templates', description: 'It would be great to have more templates for e-commerce.', priority: 'low', type: 'feature', status: 'open', orgId: 'org-1', createdAt: Date.now() - 86400000 * 10 },
 ];
 export const MOCK_ARTICLES: Article[] = [
   { id: 'a1', title: 'How to Build Your First Automation', category: 'automations', content: 'A step-by-step guide to creating powerful workflows that save you time and engage your customers.', role: 'all' },
   { id: 'a2', title: 'Managing Contacts and Tags', category: 'crm', content: 'Learn best practices for organizing your contacts, using tags for segmentation, and leveraging custom fields.', role: 'user' },
-  { id: 'a3', title: 'Creating a High-Converting Funnel', category: 'funnels', content: 'From landing page to thank you page, learn how to build a funnel that turns visitors into customers.', role: 'all' },
-  { id: 'a4', title: 'Understanding Your Sales Pipeline', category: 'pipelines', content: 'Get the most out of your visual pipeline. Learn how to customize stages and track deal progress.', role: 'user' },
-  { id: 'a5', title: 'Launching an Email Campaign', category: 'campaigns', content: 'Everything you need to know about creating, scheduling, and analyzing email marketing campaigns.', role: 'all' },
-  { id: 'a6', title: 'Using the Unified Inbox', category: 'inbox', content: 'Manage all your customer conversations from email and SMS in one centralized inbox.', role: 'all' },
-  { id: 'a7', title: 'Setting Up Your Calendar and Appointments', category: 'calendar', content: 'Configure your availability, create appointment types, and share your booking link with the world.', role: 'user' },
-  { id: 'a8', title: 'Agency Guide: Managing Sub-accounts', category: 'agency', content: 'Learn how to create and manage client sub-accounts, set permissions, and apply custom branding.', role: 'admin' },
-  { id: 'a9', title: 'Interpreting Your Dashboard Analytics', category: 'reporting', content: 'A deep dive into the metrics on your main dashboard and what they mean for your business.', role: 'all' },
-  { id: 'a10', title: 'Connecting Integrations', category: 'settings', content: 'Sync your Google or Outlook calendar, connect to Stripe, and set up webhooks for custom integrations.', role: 'user' },
 ];
 export const MOCK_INVOICES = [
     { id: 'inv-1', date: Date.now() - 86400000 * 30, amount: 99, status: 'paid' },
-    { id: 'inv-2', date: Date.now() - 86400000 * 60, amount: 99, status: 'paid' },
-    { id: 'inv-3', date: Date.now() - 86400000 * 90, amount: 99, status: 'paid' },
-    { id: 'inv-4', date: Date.now() - 86400000 * 120, amount: 99, status: 'paid' },
-    { id: 'inv-5', date: Date.now() - 86400000 * 150, amount: 99, status: 'paid' },
-    { id: 'inv-6', date: Date.now() - 86400000 * 180, amount: 99, status: 'paid' },
-    { id: 'inv-7', date: Date.now() - 86400000 * 210, amount: 99, status: 'paid' },
-    { id: 'inv-8', date: Date.now() - 86400000 * 240, amount: 99, status: 'paid' },
-    { id: 'inv-9', date: Date.now() - 86400000 * 270, amount: 99, status: 'paid' },
-    { id: 'inv-10', date: Date.now() - 86400000 * 300, amount: 99, status: 'paid' },
 ];
 export const MOCK_ANALYTICS = {
     monthly: Array.from({ length: 12 }).map((_, i) => ({

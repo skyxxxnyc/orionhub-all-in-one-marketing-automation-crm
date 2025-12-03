@@ -14,15 +14,23 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { FunnelSequencer } from '@/components/FunnelSequencer';
 import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 import { motion } from 'framer-motion';
+import { TemplateLibrary } from '@/components/TemplateLibrary';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
   const [isSequencerOpen, setSequencerOpen] = useState<Funnel | null>(null);
+  const [isTemplateSheetOpen, setTemplateSheetOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ['funnels'],
     queryFn: fetchFunnels,
   });
   const funnels = useMemo(() => data?.items ?? [], [data]);
+  const handleTemplateSelect = (templateId: string) => {
+    // In a real app, this would likely be a mutation to create a new funnel from a template
+    console.log("Creating new funnel from template:", templateId);
+    setTemplateSheetOpen(false);
+    navigate(`/app/funnels/new`, { state: { templateId } });
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
@@ -32,7 +40,17 @@ export function Funnels() {
             <p className="text-muted-foreground">Build and manage your marketing funnels and landing pages.</p>
           </div>
           <OnboardingTooltip tourId="new-funnel" content="Build a new marketing funnel to capture leads.">
-            <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
+            <Sheet open={isTemplateSheetOpen} onOpenChange={setTemplateSheetOpen}>
+              <SheetTrigger asChild>
+                <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-4xl">
+                <SheetHeader>
+                  <SheetTitle>Create Funnel from Template</SheetTitle>
+                </SheetHeader>
+                <TemplateLibrary type="page" onSelect={handleTemplateSelect} />
+              </SheetContent>
+            </Sheet>
           </OnboardingTooltip>
         </div>
         <Card>
@@ -43,7 +61,7 @@ export function Funnels() {
                   <TableHead>Name</TableHead>
                   <TableHead>Steps</TableHead>
                   <TableHead>Created At</TableHead>
-                  <TableHead>Conversion Rate</TableHead>
+                  <TableHead>Performance</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -65,7 +83,7 @@ export function Funnels() {
                       className="cursor-pointer"
                       whileHover={{ scale: 1.01 }}
                     >
-                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.id}`)}>{funnel.name}</TableCell>
+                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.steps[0]?.pageId}`)}>{funnel.name}</TableCell>
                       <TableCell onClick={() => setSequencerOpen(funnel)}>{funnel.steps.length}</TableCell>
                       <TableCell>{format(new Date(funnel.createdAt), 'PP')}</TableCell>
                       <TableCell>--</TableCell>
@@ -77,7 +95,7 @@ export function Funnels() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/app/funnels/${funnel.id}`)}>Edit First Page</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/app/pages/${funnel.steps[0]?.pageId}/edit`)}>Edit First Page</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setSequencerOpen(funnel)}>View Steps</DropdownMenuItem>
                             <DropdownMenuItem>View Stats</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>

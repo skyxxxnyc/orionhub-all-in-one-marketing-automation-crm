@@ -25,6 +25,7 @@ import { WorkflowTestingPanel } from '@/components/WorkflowTestingPanel';
 import { WorkflowJourneyViewer } from '@/components/WorkflowJourneyViewer';
 import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/lib/mock-auth';
 const fetchWorkflows = async () => api<{ items: Workflow[] }>('/api/workflows');
 const nodeTypes: NodeTypes = { custom: CustomNode };
 export function Automations() {
@@ -33,6 +34,7 @@ export function Automations() {
   const [edges, setEdges] = useState<WorkflowEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
   const [isTemplateSheetOpen, setTemplateSheetOpen] = useState(false);
+  const currentOrg = useAuthStore(s => s.currentOrg);
   const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), [setNodes]);
   const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), [setEdges]);
   const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), [setEdges]);
@@ -47,6 +49,12 @@ export function Automations() {
     },
     onError: () => toast.error('Failed to save workflow.'),
   });
+  const saveAsTemplateMutation = useMutation({
+    mutationFn: (data: { name: string; nodes: WorkflowNode[]; edges: WorkflowEdge[]; orgId: string }) =>
+      api('/api/workflows/templates', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => toast.success('Workflow saved as template!'),
+    onError: () => toast.error('Failed to save template.'),
+  });
   const handleSelectWorkflow = (workflow: Workflow) => {
     setSelectedWorkflow(workflow);
     setNodes(workflow.nodes);
@@ -58,6 +66,16 @@ export function Automations() {
       saveMutation.mutate({ id: selectedWorkflow.id, nodes, edges });
     }
   };
+  const handleSaveAsTemplate = () => {
+    if (selectedWorkflow && currentOrg) {
+      saveAsTemplateMutation.mutate({
+        name: `${selectedWorkflow.name} (Template)`,
+        nodes,
+        edges,
+        orgId: currentOrg.id,
+      });
+    }
+  };
   const onNodeClick = (_: React.MouseEvent, node: WorkflowNode) => setSelectedNode(node);
   const onPaneClick = () => setSelectedNode(null);
   const updateNodeConfig = (nodeId: string, config: any) => {
@@ -66,7 +84,14 @@ export function Automations() {
     );
   };
   const handleTemplateSelect = (template: Workflow) => {
-    handleSelectWorkflow({ ...template, id: `wf-${crypto.randomUUID()}`, name: `Copy of ${template.name}` });
+    const newWorkflow: Workflow = {
+      ...template,
+      id: `wf-${crypto.randomUUID()}`,
+      name: `Copy of ${template.name}`,
+      isTemplate: false,
+      orgId: currentOrg?.id,
+    };
+    handleSelectWorkflow(newWorkflow);
     setTemplateSheetOpen(false);
   };
   if (selectedWorkflow) {
@@ -76,9 +101,7 @@ export function Automations() {
           <Button variant="ghost" onClick={() => setSelectedWorkflow(null)}>&larr; Back to list</Button>
           <h2 className="text-lg font-bold">{selectedWorkflow.name}</h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon"><Undo className="h-4 w-4" /></Button>
-            <Button variant="outline" size="icon"><Redo className="h-4 w-4" /></Button>
-            <Button variant="outline"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
+            <Button variant="outline" size="sm" onClick={handleSaveAsTemplate} disabled={saveAsTemplateMutation.isPending}>Save as Template</Button>
             <Button onClick={handleSave} disabled={saveMutation.isPending}>
               <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? 'Saving...' : 'Save'}
             </Button>
@@ -91,6 +114,7 @@ export function Automations() {
               nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
               onConnect={onConnect} onNodeClick={onNodeClick} onPaneClick={onPaneClick}
               nodeTypes={nodeTypes} fitView
+              proOptions={{ hideAttribution: true }}
               aria-label="Workflow canvas" role="application"
             >
               <Controls />
@@ -113,16 +137,6 @@ export function Automations() {
             </Tabs>
           </div>
         </div>
-        <footer className="border-t">
-          <Tabs defaultValue="analytics">
-            <TabsList className="m-2">
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="journeys">Journeys</TabsTrigger>
-            </TabsList>
-            <TabsContent value="analytics"><WorkflowAnalytics /></TabsContent>
-            <TabsContent value="journeys"><WorkflowJourneyViewer /></TabsContent>
-          </Tabs>
-        </footer>
       </div>
     );
   }
@@ -153,8 +167,7 @@ export function Automations() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Active Contacts</TableHead>
-                  <TableHead>Completion Rate</TableHead>
+                  <TableHead>Performance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -163,8 +176,7 @@ export function Automations() {
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -177,9 +189,8 @@ export function Automations() {
                       transition={{ duration: 0.2 }}
                     >
                       <TableCell className="font-medium">{workflow.name}</TableCell>
-                      <TableCell><Badge>Active</Badge></TableCell>
-                      <TableCell>1,234</TableCell>
-                      <TableCell>92%</TableCell>
+                      <TableCell><Badge>{workflow.paused ? 'Paused' : 'Active'}</Badge></TableCell>
+                      <TableCell>{workflow.metrics?.completions ?? 0} / {workflow.metrics?.runs ?? 0} completions</TableCell>
                     </motion.tr>
                   ))
                 )}
