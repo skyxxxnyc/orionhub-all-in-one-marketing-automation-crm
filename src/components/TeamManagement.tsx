@@ -9,14 +9,18 @@ import { PlusCircle } from 'lucide-react';
 import { useAuthStore } from '@/lib/mock-auth';
 import { api } from '@/lib/api-client';
 import type { User } from '@shared/types';
-const fetchUsers = async () => api<{ items: User[] }>('/api/users');
+const fetchUsers = async (workspaceId?: string) => {
+  if (!workspaceId) return { items: [] };
+  return api<{ items: User[] }>('/api/users', { query: { workspaceId } });
+};
 export function TeamManagement() {
   const currentWorkspace = useAuthStore((state) => state.currentWorkspace);
   const { data, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryKey: ['users', currentWorkspace?.id],
+    queryFn: () => fetchUsers(currentWorkspace?.id),
+    enabled: !!currentWorkspace,
   });
-  const users = data?.items.filter(u => currentWorkspace?.users.includes(u.id)) || [];
+  const users = data?.items || [];
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   return (
     <Card>
@@ -40,7 +44,7 @@ export function TeamManagement() {
           </TableHeader>
           <TableBody>
             {users.map(user => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} className="hover:bg-muted/50">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>

@@ -37,9 +37,11 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
                     <CardDescription>A pre-built workflow to get you started.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-40 bg-muted/50 pointer-events-none">
-                    <ReactFlow nodes={template.nodes} edges={template.edges} fitView>
-                      <MiniMap nodeStrokeWidth={3} zoomable pannable />
-                    </ReactFlow>
+                    <div className="h-full w-full">
+                      <ReactFlow nodes={template.nodes} edges={template.edges} fitView>
+                        <MiniMap nodeStrokeWidth={3} zoomable={false} pannable={false} />
+                      </ReactFlow>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
