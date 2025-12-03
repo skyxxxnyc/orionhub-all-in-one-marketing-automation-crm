@@ -38,7 +38,7 @@ export function WorkflowInspector({ selectedNode, onUpdate }: WorkflowInspectorP
             <div>
               <Label htmlFor="body">Body</Label>
               <Textarea id="body" {...register('body')} placeholder="Hi {{contact.name}}," rows={6} />
-              <p className="text-xs text-muted-foreground mt-1">Use merge tags like {{contact.name}}.</p>
+              <p className="text-xs text-muted-foreground mt-1">Use merge tags like {'{{contact.name}}'}.</p>
             </div>
           </div>
         );

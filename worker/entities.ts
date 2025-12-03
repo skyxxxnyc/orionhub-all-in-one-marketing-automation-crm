@@ -2,8 +2,8 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -108,5 +108,65 @@ export class WorkflowEntity extends IndexedEntity<Workflow> {
   static seedData = MOCK_WORKFLOWS;
   async update(nodes: WorkflowNode[], edges: WorkflowEdge[]): Promise<Workflow> {
     return this.mutate(s => ({ ...s, nodes, edges, updatedAt: Date.now() }));
+  }
+}
+// EMAIL TEMPLATE ENTITY
+export class EmailTemplateEntity extends IndexedEntity<EmailTemplate> {
+  static readonly entityName = "emailTemplate";
+  static readonly indexName = "emailTemplates";
+  static readonly initialState: EmailTemplate = { id: "", name: "", subject: "", body: "", mergeTags: [] };
+  static seedData = MOCK_EMAIL_TEMPLATES;
+}
+// SMS TEMPLATE ENTITY
+export class SMSTemplateEntity extends IndexedEntity<SMSTemplate> {
+  static readonly entityName = "smsTemplate";
+  static readonly indexName = "smsTemplates";
+  static readonly initialState: SMSTemplate = { id: "", name: "", body: "", mergeTags: [] };
+  static seedData = MOCK_SMS_TEMPLATES;
+}
+// CAMPAIGN ENTITY
+export class CampaignEntity extends IndexedEntity<Campaign> {
+  static readonly entityName = "campaign";
+  static readonly indexName = "campaigns";
+  static readonly initialState: Campaign = {
+    id: "",
+    type: "email",
+    name: "",
+    templateId: "",
+    status: "draft",
+    analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 },
+  };
+  static seedData = MOCK_CAMPAIGNS;
+  async schedule(date: number): Promise<Campaign> {
+    return this.mutate(s => ({ ...s, status: 'scheduled', scheduledAt: date }));
+  }
+  async send(): Promise<Campaign> {
+    return this.mutate(s => ({ ...s, status: 'sent', scheduledAt: Date.now() }));
+  }
+}
+// CONVERSATION ENTITY
+export class ConversationEntity extends IndexedEntity<Conversation> {
+  static readonly entityName = "conversation";
+  static readonly indexName = "conversations";
+  static readonly initialState: Conversation = {
+    id: "",
+    contactId: "",
+    channel: "email",
+    messages: [],
+    status: "open",
+    lastMessageAt: 0,
+  };
+  static seedData = MOCK_CONVERSATIONS;
+  async addMessage(message: Omit<Message, 'id'>): Promise<Conversation> {
+    const newMessage: Message = { ...message, id: crypto.randomUUID() };
+    return this.mutate(s => ({
+      ...s,
+      messages: [...s.messages, newMessage],
+      lastMessageAt: newMessage.timestamp,
+      status: 'open',
+    }));
+  }
+  async updateStatus(status: 'open' | 'closed'): Promise<Conversation> {
+    return this.mutate(s => ({ ...s, status }));
   }
 }

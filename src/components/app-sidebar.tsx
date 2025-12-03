@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, Mail, MessageSquare } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,8 +16,10 @@ import { useAuthStore } from "@/lib/mock-auth";
 import { Button } from "./ui/button";
 const navItems = [
   { href: "/app/dashboard", icon: Home, label: "Dashboard" },
+  { href: "/app/inbox", icon: MessageSquare, label: "Inbox" },
   { href: "/app/contacts", icon: Users, label: "Contacts" },
   { href: "/app/pipeline", icon: BarChart, label: "Pipeline" },
+  { href: "/app/campaigns", icon: Mail, label: "Campaigns" },
   { href: "/app/automations", icon: Workflow, label: "Automations" },
 ];
 export function AppSidebar(): JSX.Element {

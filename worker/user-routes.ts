@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -188,6 +188,70 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const state = await workflow.getState();
     const path = state.nodes.map(n => n.id);
     return ok(c, { path, results: 'Simulation complete' });
+  });
+  // TEMPLATES
+  app.get('/api/templates/email', async (c) => {
+    await EmailTemplateEntity.ensureSeed(c.env);
+    return ok(c, await EmailTemplateEntity.list(c.env));
+  });
+  app.get('/api/templates/sms', async (c) => {
+    await SMSTemplateEntity.ensureSeed(c.env);
+    return ok(c, await SMSTemplateEntity.list(c.env));
+  });
+  // CAMPAIGNS
+  app.get('/api/campaigns', async (c) => {
+    await CampaignEntity.ensureSeed(c.env);
+    const page = await CampaignEntity.list(c.env);
+    return ok(c, page);
+  });
+  app.post('/api/campaigns', async (c) => {
+    const body = (await c.req.json()) as Partial<Campaign>;
+    if (!isStr(body.name) || !isStr(body.type) || !isStr(body.templateId)) return bad(c, 'name, type, and templateId required');
+    const newCampaign: Campaign = {
+      id: crypto.randomUUID(),
+      name: body.name,
+      type: body.type,
+      templateId: body.templateId,
+      status: 'draft',
+      analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 },
+      scheduledAt: body.scheduledAt,
+    };
+    if (body.scheduledAt) newCampaign.status = 'scheduled';
+    return ok(c, await CampaignEntity.create(c.env, newCampaign));
+  });
+  app.post('/api/campaigns/:id/send', async (c) => {
+    const campaign = new CampaignEntity(c.env, c.req.param('id'));
+    if (!await campaign.exists()) return notFound(c, 'campaign not found');
+    await campaign.send();
+    return ok(c, { success: true, deliveryId: crypto.randomUUID() });
+  });
+  // INBOX / CONVERSATIONS
+  app.get('/api/inbox', async (c) => {
+    await ConversationEntity.ensureSeed(c.env);
+    const page = await ConversationEntity.list(c.env);
+    // Sort by most recent message
+    page.items.sort((a, b) => b.lastMessageAt - a.lastMessageAt);
+    return ok(c, page);
+  });
+  app.post('/api/conversations/:id/messages', async (c) => {
+    const conversation = new ConversationEntity(c.env, c.req.param('id'));
+    if (!await conversation.exists()) return notFound(c, 'conversation not found');
+    const { text, from } = (await c.req.json()) as { text?: string; from?: string };
+    if (!isStr(text)) return bad(c, 'text is required');
+    const message: Omit<Message, 'id'> = {
+      text,
+      from: from || 'user',
+      direction: 'out',
+      timestamp: Date.now(),
+    };
+    return ok(c, await conversation.addMessage(message));
+  });
+  app.put('/api/conversations/:id/status', async (c) => {
+    const conversation = new ConversationEntity(c.env, c.req.param('id'));
+    if (!await conversation.exists()) return notFound(c, 'conversation not found');
+    const { status } = (await c.req.json()) as { status?: 'open' | 'closed' };
+    if (status !== 'open' && status !== 'closed') return bad(c, 'valid status is required');
+    return ok(c, await conversation.updateStatus(status));
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
