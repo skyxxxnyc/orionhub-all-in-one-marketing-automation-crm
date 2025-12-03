@@ -2,8 +2,8 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -168,5 +168,42 @@ export class ConversationEntity extends IndexedEntity<Conversation> {
   }
   async updateStatus(status: 'open' | 'closed'): Promise<Conversation> {
     return this.mutate(s => ({ ...s, status }));
+  }
+}
+// PAGE ENTITY
+export class PageEntity extends IndexedEntity<Page> {
+  static readonly entityName = "page";
+  static readonly indexName = "pages";
+  static readonly initialState: Page = {
+    id: "",
+    name: "",
+    content: [],
+    analytics: { views: 0, conversions: 0 },
+    createdAt: 0,
+  };
+  static seedData = MOCK_PAGES;
+  async trackView(): Promise<Page> {
+    return this.mutate(s => ({ ...s, analytics: { ...s.analytics, views: s.analytics.views + 1 } }));
+  }
+  async trackConversion(): Promise<Page> {
+    return this.mutate(s => ({ ...s, analytics: { ...s.analytics, conversions: s.analytics.conversions + 1 } }));
+  }
+}
+// FUNNEL ENTITY
+export class FunnelEntity extends IndexedEntity<Funnel> {
+  static readonly entityName = "funnel";
+  static readonly indexName = "funnels";
+  static readonly initialState: Funnel = {
+    id: "",
+    name: "",
+    steps: [],
+    createdAt: 0,
+  };
+  static seedData = MOCK_FUNNELS;
+  async addStep(pageId: string): Promise<Funnel> {
+    return this.mutate(s => {
+      const newStep: FunnelStep = { id: crypto.randomUUID(), pageId, order: s.steps.length + 1 };
+      return { ...s, steps: [...s.steps, newStep] };
+    });
   }
 }

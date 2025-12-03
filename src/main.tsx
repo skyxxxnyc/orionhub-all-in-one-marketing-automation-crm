@@ -20,6 +20,8 @@ import { Pipeline } from '@/pages/App/Pipeline';
 import { Automations } from '@/pages/App/Automations';
 import { Campaigns } from '@/pages/App/Campaigns';
 import { Inbox } from '@/pages/App/Inbox';
+import { Funnels } from '@/pages/App/Funnels';
+import { PageEditor } from '@/pages/App/PageEditor';
 // Layouts & Auth
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuthStore } from '@/lib/mock-auth';
@@ -88,6 +90,9 @@ const router = createBrowserRouter([
       { path: "automations", element: <Automations /> },
       { path: "campaigns", element: <Campaigns /> },
       { path: "inbox", element: <Inbox /> },
+      { path: "funnels", element: <Funnels /> },
+      { path: "funnels/:id", element: <PageEditor /> }, // Simplified for now
+      { path: "pages/:id/edit", element: <PageEditor /> },
     ],
   },
 ]);

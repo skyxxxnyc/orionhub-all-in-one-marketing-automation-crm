@@ -32,13 +32,13 @@ export function WorkflowToolbox() {
             <AccordionContent>
               <div className="space-y-2">
                 {items.map((item) => {
-                  const Icon = LucideIcons[item.icon as keyof typeof LucideIcons] || LucideIcons.HelpCircle;
+                  const Icon = (LucideIcons as any)[item.icon] || LucideIcons.HelpCircle;
                   return (
                     <motion.div
                       key={item.label}
                       className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted"
                       draggable
-                      onDragStart={(event) => onDragStart(event, 'custom', item)}
+                      onDragStart={(event: React.DragEvent) => onDragStart(event, 'custom', item)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >

@@ -121,3 +121,32 @@ export interface Conversation {
   assignedTo?: string; // User ID
   lastMessageAt: number;
 }
+// Funnels & Pages Types
+export interface PageElement {
+  id: string;
+  type: 'text' | 'image' | 'form' | 'button';
+  content: string; // For text/button label/image URL
+  position: { x: number; y: number };
+  config?: Record<string, any>; // For styles, form fields, etc.
+}
+export interface Page {
+  id: string;
+  name: string;
+  content: PageElement[];
+  analytics: {
+    views: number;
+    conversions: number;
+  };
+  createdAt: number;
+}
+export interface FunnelStep {
+  id: string;
+  pageId: string;
+  order: number;
+}
+export interface Funnel {
+  id: string;
+  name: string;
+  steps: FunnelStep[];
+  createdAt: number;
+}
