@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -179,6 +179,59 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     id: 'conv-3', contactId: 'contact-4', channel: 'email', status: 'open', lastMessageAt: Date.now() - 3600000 * 5,
     messages: [
       { id: 'msg-3-1', from: 'Diana Miller', text: 'Interested in learning more about your services.', direction: 'in', timestamp: Date.now() - 3600000 * 5 },
+    ],
+  },
+];
+export const MOCK_PAGES: Page[] = [
+  {
+    id: 'page-1',
+    name: 'SaaS Landing Page',
+    createdAt: Date.now() - 86400000 * 5,
+    analytics: { views: 10234, conversions: 876 },
+    content: [
+      { id: 'el-1', type: 'text', content: '<h1>The Future of SaaS</h1>', position: { x: 100, y: 50 } },
+      { id: 'el-2', type: 'image', content: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070', position: { x: 100, y: 150 } },
+      { id: 'el-3', type: 'button', content: 'Get Started', position: { x: 100, y: 300 } },
+    ],
+  },
+  {
+    id: 'page-2',
+    name: 'Thank You Page',
+    createdAt: Date.now() - 86400000 * 4,
+    analytics: { views: 870, conversions: 0 },
+    content: [
+      { id: 'el-4', type: 'text', content: '<h2>Thanks for signing up!</h2>', position: { x: 100, y: 50 } },
+    ],
+  },
+  {
+    id: 'page-3',
+    name: 'Upsell Offer',
+    createdAt: Date.now() - 86400000 * 3,
+    analytics: { views: 850, conversions: 120 },
+    content: [
+      { id: 'el-5', type: 'text', content: '<h3>One-Time Offer!</h3>', position: { x: 100, y: 50 } },
+      { id: 'el-6', type: 'button', content: 'Add to My Order', position: { x: 100, y: 150 } },
+    ],
+  },
+];
+export const MOCK_FUNNELS: Funnel[] = [
+  {
+    id: 'funnel-1',
+    name: 'Main Lead Funnel',
+    createdAt: Date.now() - 86400000 * 5,
+    steps: [
+      { id: 'step-1', pageId: 'page-1', order: 1 },
+      { id: 'step-2', pageId: 'page-2', order: 2 },
+      { id: 'step-3', pageId: 'page-3', order: 3 },
+    ],
+  },
+  {
+    id: 'funnel-2',
+    name: 'Webinar Signup Funnel',
+    createdAt: Date.now() - 86400000 * 2,
+    steps: [
+      { id: 'step-4', pageId: 'page-1', order: 1 },
+      { id: 'step-5', pageId: 'page-2', order: 2 },
     ],
   },
 ];

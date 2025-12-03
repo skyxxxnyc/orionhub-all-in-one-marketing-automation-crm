@@ -1,23 +1,19 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import type { Funnel } from '@shared/types';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { FunnelSequencer } from '@/components/FunnelSequencer';
-import { OnboardingTooltip } from '@/components/OnboardingTooltip';
-import { motion } from 'framer-motion';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
-  const [isSequencerOpen, setSequencerOpen] = useState<Funnel | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['funnels'],
     queryFn: fetchFunnels,
@@ -31,9 +27,7 @@ export function Funnels() {
             <h1 className="text-3xl font-bold text-foreground">Funnels & Pages</h1>
             <p className="text-muted-foreground">Build and manage your marketing funnels and landing pages.</p>
           </div>
-          <OnboardingTooltip tourId="new-funnel" content="Build a new marketing funnel to capture leads.">
-            <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
-          </OnboardingTooltip>
+          <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
         </div>
         <Card>
           <CardContent>
@@ -60,13 +54,9 @@ export function Funnels() {
                   ))
                 ) : funnels.length > 0 ? (
                   funnels.map((funnel) => (
-                    <motion.tr
-                      key={funnel.id}
-                      className="cursor-pointer"
-                      whileHover={{ scale: 1.01 }}
-                    >
-                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.id}`)}>{funnel.name}</TableCell>
-                      <TableCell onClick={() => setSequencerOpen(funnel)}>{funnel.steps.length}</TableCell>
+                    <TableRow key={funnel.id} onClick={() => navigate(`/app/funnels/${funnel.id}`)} className="cursor-pointer">
+                      <TableCell className="font-medium">{funnel.name}</TableCell>
+                      <TableCell>{funnel.steps.length}</TableCell>
                       <TableCell>{format(new Date(funnel.createdAt), 'PP')}</TableCell>
                       <TableCell>--</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -77,14 +67,13 @@ export function Funnels() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/app/funnels/${funnel.id}`)}>Edit First Page</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSequencerOpen(funnel)}>View Steps</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/app/funnels/${funnel.id}`)}>Edit</DropdownMenuItem>
                             <DropdownMenuItem>View Stats</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                    </motion.tr>
+                    </TableRow>
                   ))
                 ) : (
                   <TableRow>
@@ -95,14 +84,6 @@ export function Funnels() {
             </Table>
           </CardContent>
         </Card>
-        <Sheet open={!!isSequencerOpen} onOpenChange={(open) => !open && setSequencerOpen(null)}>
-          <SheetContent className="sm:max-w-2xl">
-            <SheetHeader>
-              <SheetTitle>Funnel: {isSequencerOpen?.name}</SheetTitle>
-            </SheetHeader>
-            {isSequencerOpen && <FunnelSequencer funnel={isSequencerOpen} />}
-          </SheetContent>
-        </Sheet>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -252,6 +252,66 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { status } = (await c.req.json()) as { status?: 'open' | 'closed' };
     if (status !== 'open' && status !== 'closed') return bad(c, 'valid status is required');
     return ok(c, await conversation.updateStatus(status));
+  });
+  // PAGES & FUNNELS
+  app.get('/api/pages', async (c) => {
+    await PageEntity.ensureSeed(c.env);
+    return ok(c, await PageEntity.list(c.env));
+  });
+  app.post('/api/pages', async (c) => {
+    const { name } = (await c.req.json()) as Partial<Page>;
+    if (!isStr(name)) return bad(c, 'name is required');
+    const newPage: Page = {
+      id: crypto.randomUUID(),
+      name,
+      content: [],
+      analytics: { views: 0, conversions: 0 },
+      createdAt: Date.now(),
+    };
+    return ok(c, await PageEntity.create(c.env, newPage));
+  });
+  app.get('/api/pages/:id', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) return notFound(c, 'page not found');
+    return ok(c, await page.getState());
+  });
+  app.put('/api/pages/:id', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) return notFound(c, 'page not found');
+    const patch = (await c.req.json()) as Partial<Page>;
+    await page.patch(patch);
+    return ok(c, await page.getState());
+  });
+  app.post('/api/pages/:id/track', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) return notFound(c, 'page not found');
+    const { type } = (await c.req.json()) as { type: 'view' | 'conversion' };
+    if (type === 'conversion') {
+      await page.trackConversion();
+    } else {
+      await page.trackView();
+    }
+    return ok(c, { success: true });
+  });
+  app.get('/api/funnels', async (c) => {
+    await FunnelEntity.ensureSeed(c.env);
+    return ok(c, await FunnelEntity.list(c.env));
+  });
+  app.post('/api/funnels', async (c) => {
+    const { name } = (await c.req.json()) as Partial<Funnel>;
+    if (!isStr(name)) return bad(c, 'name is required');
+    const newFunnel: Funnel = {
+      id: crypto.randomUUID(),
+      name,
+      steps: [],
+      createdAt: Date.now(),
+    };
+    return ok(c, await FunnelEntity.create(c.env, newFunnel));
+  });
+  app.get('/api/funnels/:id', async (c) => {
+    const funnel = new FunnelEntity(c.env, c.req.param('id'));
+    if (!await funnel.exists()) return notFound(c, 'funnel not found');
+    return ok(c, await funnel.getState());
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));

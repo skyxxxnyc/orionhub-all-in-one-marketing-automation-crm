@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api-client';
 import type { EmailTemplate, SMSTemplate } from '@shared/types';
+import { cn } from '@/lib/utils';
 const fetchEmailTemplates = async () => api<{ items: EmailTemplate[] }>('/api/templates/email');
 const fetchSmsTemplates = async () => api<{ items: SMSTemplate[] }>('/api/templates/sms');
 interface TemplateLibraryProps {
@@ -27,7 +28,7 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
                 {'subject' in template && <CardDescription>{template.subject}</CardDescription>}
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2">{template.body}</p>
+                <p className={cn("text-sm text-muted-foreground line-clamp-2")}>{template.body}</p>
               </CardContent>
             </Card>
           </motion.div>

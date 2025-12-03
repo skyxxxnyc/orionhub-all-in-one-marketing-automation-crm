@@ -33,15 +33,17 @@ export function PageToolbox() {
                 {items.map((item) => {
                   const Icon = (LucideIcons as any)[item.icon] || LucideIcons.HelpCircle;
                   return (
-                    <div
+                    <motion.div
                       key={item.label}
-                      className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted transition-colors"
+                      className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted"
                       draggable
-                      onDragStart={(event: React.DragEvent<HTMLDivElement>) => onDragStart(event, 'default', item)}
+                      onDragStart={(event: React.DragEvent) => onDragStart(event, 'default', item)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <Icon className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{item.label}</span>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

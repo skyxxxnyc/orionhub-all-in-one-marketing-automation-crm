@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { NodeData } from '@shared/types';
 export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
-  const Icon = LucideIcons[data.icon as keyof typeof LucideIcons] || LucideIcons.HelpCircle;
+  const Icon = (LucideIcons as any)[data.icon] || LucideIcons.HelpCircle;
   const typeColorMap = {
     trigger: 'bg-green-500/20 border-green-500/50 text-green-300',
     action: 'bg-blue-500/20 border-blue-500/50 text-blue-300',
