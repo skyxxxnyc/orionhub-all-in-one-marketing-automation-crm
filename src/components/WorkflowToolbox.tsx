@@ -2,6 +2,8 @@ import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import * as LucideIcons from 'lucide-react';
+import { useAuthStore } from '@/lib/mock-auth';
+import { motion } from 'framer-motion';
 const toolboxItems = {
   Triggers: [
     { label: 'Form Submitted', type: 'trigger', icon: 'FileText', description: 'Starts when a form is submitted.' },
@@ -18,21 +20,27 @@ const toolboxItems = {
   Conditions: [
     { label: 'If/Else', type: 'condition', icon: 'GitBranch', description: 'Splits the path based on a condition.' },
   ],
+  Integrations: [
+    { label: 'Send Gmail Sequence', type: 'action', icon: 'Mail', description: 'Send personalized email via Gmail' },
+    { label: 'Schedule Calendar Event', type: 'action', icon: 'CalendarPlus', description: 'Add event to Google Calendar' },
+    { label: 'Research Prospect', type: 'action', icon: 'Search', description: 'Enrich contact with Perplexity AI' },
+  ],
   Exit: [
     { label: 'End Workflow', type: 'end', icon: 'CheckCircle', description: 'Ends this workflow path.' },
   ]
 };
-const onDragStart = (event: React.DragEvent, nodeType: string, nodeData: any) => {
-  const data = JSON.stringify({ type: 'custom', data: nodeData });
-  event.dataTransfer.setData('application/reactflow', data);
-  event.dataTransfer.effectAllowed = 'move';
-};
 export function WorkflowToolbox() {
+  const currentOrg = useAuthStore(s => s.currentOrg);
+  const onDragStart = (event: React.DragEvent, nodeType: string, nodeData: any) => {
+    const data = JSON.stringify({ type: 'custom', data: { ...nodeData, orgId: currentOrg?.id } });
+    event.dataTransfer.setData('application/reactflow', data);
+    event.dataTransfer.effectAllowed = 'move';
+  };
   return (
     <div className="w-64 border-r bg-background p-4">
       <h3 className="text-lg font-semibold mb-4">Toolbox</h3>
       <TooltipProvider>
-        <Accordion type="multiple" defaultValue={['Triggers', 'Actions']} className="w-full">
+        <Accordion type="multiple" defaultValue={['Triggers', 'Actions', 'Integrations']} className="w-full">
           {Object.entries(toolboxItems).map(([category, items]) => (
             <AccordionItem value={category} key={category}>
               <AccordionTrigger>{category}</AccordionTrigger>
@@ -43,14 +51,15 @@ export function WorkflowToolbox() {
                     return (
                       <Tooltip key={item.label}>
                         <TooltipTrigger asChild>
-                          <div
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
                             className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted transition-colors"
                             draggable
                             onDragStart={(event: React.DragEvent<HTMLDivElement>) => onDragStart(event, 'custom', item)}
                           >
                             <Icon className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">{item.label}</span>
-                          </div>
+                          </motion.div>
                         </TooltipTrigger>
                         <TooltipContent side="right">
                           <p>{item.description}</p>
