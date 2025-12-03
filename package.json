@@ -74,6 +74,7 @@
     "react-select": "^5.10.2",
     "react-swipeable": "^7.0.2",
     "react-use": "^17.6.0",
+    "reactflow": "^11.11.4",
     "recharts": "2.15.4",
     "sonner": "^2.0.6",
     "stripe": "^16.10.0",
