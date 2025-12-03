@@ -142,7 +142,8 @@ export class TicketEntity extends IndexedEntity<Ticket> {
   static readonly initialState: Ticket = { id: "", title: "", description: "", priority: "low", type: "other", status: "open", orgId: "", createdAt: 0 };
   static seedData = MOCK_TICKETS;
   async resolve(): Promise<Ticket> {
-    return this.patch({ status: "resolved", resolvedAt: Date.now() });
+    await this.patch({ status: "resolved", resolvedAt: Date.now() });
+    return await this.getState();
   }
   /**
    * Lists tickets for a specific organization, matching the IndexedEntity.list signature.
