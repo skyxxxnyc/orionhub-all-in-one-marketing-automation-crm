@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, Mail, MessageSquare, FileText } from "lucide-react";
+import { Home, Users, Workflow, BarChart, Settings, LifeBuoy, LogOut, Mail, MessageSquare, FileText, Calendar } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/app/inbox", icon: MessageSquare, label: "Inbox" },
   { href: "/app/contacts", icon: Users, label: "Contacts" },
   { href: "/app/pipeline", icon: BarChart, label: "Pipeline" },
+  { href: "/app/calendar", icon: Calendar, label: "Calendar" },
   { href: "/app/campaigns", icon: Mail, label: "Campaigns" },
   { href: "/app/automations", icon: Workflow, label: "Automations" },
   { href: "/app/funnels", icon: FileText, label: "Funnels & Pages" },

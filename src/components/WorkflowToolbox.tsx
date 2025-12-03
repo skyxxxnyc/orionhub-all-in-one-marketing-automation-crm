@@ -34,17 +34,15 @@ export function WorkflowToolbox() {
                 {items.map((item) => {
                   const Icon = (LucideIcons as any)[item.icon] || LucideIcons.HelpCircle;
                   return (
-                    <motion.div
+                    <div
                       key={item.label}
-                      className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted"
+                      className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted transition-colors"
                       draggable
-                      onDragStart={(event: React.DragEvent) => onDragStart(event, 'custom', item)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      onDragStart={(event: React.DragEvent<HTMLDivElement>) => onDragStart(event, 'custom', item)}
                     >
                       <Icon className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{item.label}</span>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>

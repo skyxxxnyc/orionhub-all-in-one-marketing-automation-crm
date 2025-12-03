@@ -2,8 +2,8 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -205,5 +205,57 @@ export class FunnelEntity extends IndexedEntity<Funnel> {
       const newStep: FunnelStep = { id: crypto.randomUUID(), pageId, order: s.steps.length + 1 };
       return { ...s, steps: [...s.steps, newStep] };
     });
+  }
+}
+// APPOINTMENT ENTITY
+export class AppointmentEntity extends IndexedEntity<Appointment> {
+  static readonly entityName = "appointment";
+  static readonly indexName = "appointments";
+  static readonly initialState: Appointment = {
+    id: "",
+    title: "",
+    start: 0,
+    end: 0,
+    type: "",
+    status: "scheduled",
+    bufferBefore: 0,
+    bufferAfter: 0,
+  };
+  static seedData = MOCK_APPOINTMENTS;
+  async updateStatus(status: 'scheduled' | 'cancelled' | 'completed'): Promise<Appointment> {
+    return this.mutate(s => ({ ...s, status }));
+  }
+}
+// AVAILABILITY ENTITY
+export class AvailabilityEntity extends IndexedEntity<Availability> {
+  static readonly entityName = "availability";
+  static readonly indexName = "availabilities";
+  static readonly initialState: Availability = {
+    id: "",
+    userId: "",
+    dayOfWeek: 0,
+    startTime: "09:00",
+    endTime: "17:00",
+  };
+  static seedData = MOCK_AVAILABILITIES;
+}
+// CALENDAR EVENT ENTITY (Read-only view for demo)
+export class CalendarEventEntity extends IndexedEntity<CalendarEvent> {
+  static readonly entityName = "calendarEvent";
+  static readonly indexName = "calendarEvents";
+  static readonly initialState: CalendarEvent = { id: "", title: "", start: 0, end: 0 };
+  static seedData = MOCK_CALENDAR_EVENTS;
+}
+// INTEGRATION ENTITY
+export class IntegrationEntity extends IndexedEntity<Integration> {
+  static readonly entityName = "integration";
+  static readonly indexName = "integrations";
+  static readonly initialState: Integration = { id: "", type: "google", status: "disconnected" };
+  static seedData = MOCK_INTEGRATIONS;
+  async connect(): Promise<Integration> {
+    return this.mutate(s => ({ ...s, status: 'connected', syncToken: `mock-sync-token-${crypto.randomUUID()}` }));
+  }
+  async disconnect(): Promise<Integration> {
+    return this.mutate(s => ({ ...s, status: 'disconnected', syncToken: undefined }));
   }
 }

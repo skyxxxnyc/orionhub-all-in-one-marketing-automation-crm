@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +24,7 @@ export function LoginPage() {
       password: "password",
     },
   });
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
       await login(values.email);
@@ -35,7 +35,7 @@ export function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [login, navigate]);
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-md space-y-8">

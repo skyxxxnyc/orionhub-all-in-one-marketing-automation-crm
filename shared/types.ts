@@ -150,3 +150,35 @@ export interface Funnel {
   steps: FunnelStep[];
   createdAt: number;
 }
+// Calendar & Scheduling Types
+export interface Appointment {
+  id: string;
+  title: string;
+  start: number; // epoch millis
+  end: number; // epoch millis
+  contactId?: string;
+  type: string;
+  status: 'scheduled' | 'cancelled' | 'completed';
+  bufferBefore: number; // minutes
+  bufferAfter: number; // minutes
+}
+export interface Availability {
+  id: string;
+  userId: string;
+  dayOfWeek: number; // 0 (Sun) to 6 (Sat)
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
+}
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: number; // epoch millis
+  end: number; // epoch millis
+  color?: string;
+}
+export interface Integration {
+  id: string;
+  type: 'google' | 'outlook';
+  status: 'connected' | 'disconnected';
+  syncToken?: string;
+}
