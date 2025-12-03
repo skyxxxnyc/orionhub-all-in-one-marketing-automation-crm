@@ -1,3 +1,4 @@
+import type { Node as RFNode, Edge as RFEdge } from 'reactflow';
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -57,4 +58,22 @@ export interface Pipeline {
   name: string;
   stages: string[]; // Ordered list of stage names
   deals: Deal[]; // This is for API responses, not stored directly in PipelineEntity
+}
+// Workflow types
+export type NodeType = 'trigger' | 'action' | 'condition';
+export interface NodeData {
+  label: string;
+  type: NodeType;
+  icon: string; // Lucide icon name
+  config?: Record<string, any>;
+}
+export type WorkflowNode = RFNode<NodeData>;
+export type WorkflowEdge = RFEdge;
+export interface Workflow {
+  id: string;
+  name: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  createdAt: number;
+  updatedAt: number;
 }

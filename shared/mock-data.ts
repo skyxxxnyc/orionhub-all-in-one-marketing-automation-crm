@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -103,5 +103,45 @@ export const MOCK_PIPELINES: Omit<Pipeline, 'deals'>[] = [
     id: 'pipeline-1',
     name: 'Sales Pipeline',
     stages: ['New Lead', 'Contact Made', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'],
+  },
+];
+export const MOCK_WORKFLOWS: Workflow[] = [
+  {
+    id: 'wf-1',
+    name: 'Lead Nurturing Sequence',
+    createdAt: Date.now() - 86400000 * 5,
+    updatedAt: Date.now() - 86400000 * 1,
+    nodes: [
+      { id: '1', type: 'custom', position: { x: 50, y: 100 }, data: { label: 'Form Submitted', type: 'trigger', icon: 'FileText' } },
+      { id: '2', type: 'custom', position: { x: 300, y: 100 }, data: { label: 'Send Welcome Email', type: 'action', icon: 'Mail' } },
+      { id: '3', type: 'custom', position: { x: 550, y: 100 }, data: { label: 'Wait 3 Days', type: 'action', icon: 'Clock' } },
+      { id: '4', type: 'custom', position: { x: 800, y: 100 }, data: { label: 'Email Opened?', type: 'condition', icon: 'GitBranch' } },
+      { id: '5', type: 'custom', position: { x: 1050, y: 0 }, data: { label: 'Send Follow-up SMS', type: 'action', icon: 'MessageSquare' } },
+      { id: '6', type: 'custom', position: { x: 1050, y: 200 }, data: { label: 'Add Tag "Unresponsive"', type: 'action', icon: 'Tag' } },
+    ],
+    edges: [
+      { id: 'e1-2', source: '1', target: '2', animated: true },
+      { id: 'e2-3', source: '2', target: '3', animated: true },
+      { id: 'e3-4', source: '3', target: '4', animated: true },
+      { id: 'e4-5', source: '4', target: '5', sourceHandle: 'yes', label: 'Yes' },
+      { id: 'e4-6', source: '4', target: '6', sourceHandle: 'no', label: 'No' },
+    ],
+  },
+  {
+    id: 'wf-2',
+    name: 'Re-engagement Campaign',
+    createdAt: Date.now() - 86400000 * 10,
+    updatedAt: Date.now() - 86400000 * 3,
+    nodes: [
+      { id: '1', type: 'custom', position: { x: 50, y: 100 }, data: { label: 'Tag Added: "Inactive"', type: 'trigger', icon: 'Tag' } },
+      { id: '2', type: 'custom', position: { x: 300, y: 100 }, data: { label: 'Send "We Miss You" Email', type: 'action', icon: 'Mail' } },
+      { id: '3', type: 'custom', position: { x: 550, y: 100 }, data: { label: 'Wait 7 Days', type: 'action', icon: 'Clock' } },
+      { id: '4', type: 'custom', position: { x: 800, y: 100 }, data: { label: 'Archive Contact', type: 'action', icon: 'Archive' } },
+    ],
+    edges: [
+      { id: 'e1-2', source: '1', target: '2', animated: true },
+      { id: 'e2-3', source: '2', target: '3', animated: true },
+      { id: 'e3-4', source: '3', target: '4', animated: true },
+    ],
   },
 ];
