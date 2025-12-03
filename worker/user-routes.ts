@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -145,6 +145,49 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!isStr(stage)) return bad(c, 'stage is required');
     const updatedDeal = await dealEntity.updateStage(stage);
     return ok(c, updatedDeal);
+  });
+  // WORKFLOWS
+  app.get('/api/workflows', async (c) => {
+    await WorkflowEntity.ensureSeed(c.env);
+    const page = await WorkflowEntity.list(c.env);
+    return ok(c, page);
+  });
+  app.get('/api/workflows/:id', async (c) => {
+    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
+    if (!await workflow.exists()) return notFound(c, 'workflow not found');
+    return ok(c, await workflow.getState());
+  });
+  app.post('/api/workflows', async (c) => {
+    const { name } = (await c.req.json()) as { name?: string };
+    if (!isStr(name)) return bad(c, 'name is required');
+    const newWorkflow: Workflow = {
+      id: crypto.randomUUID(),
+      name,
+      nodes: [],
+      edges: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    return ok(c, await WorkflowEntity.create(c.env, newWorkflow));
+  });
+  app.put('/api/workflows/:id', async (c) => {
+    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
+    if (!await workflow.exists()) return notFound(c, 'workflow not found');
+    const { nodes, edges } = (await c.req.json()) as { nodes?: WorkflowNode[]; edges?: WorkflowEdge[] };
+    if (!nodes || !edges) return bad(c, 'nodes and edges are required');
+    return ok(c, await workflow.update(nodes, edges));
+  });
+  app.delete('/api/workflows/:id', async (c) => {
+    const deleted = await WorkflowEntity.delete(c.env, c.req.param('id'));
+    return ok(c, { id: c.req.param('id'), deleted });
+  });
+  app.post('/api/workflows/:id/simulate', async (c) => {
+    // Mock simulation
+    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
+    if (!await workflow.exists()) return notFound(c, 'workflow not found');
+    const state = await workflow.getState();
+    const path = state.nodes.map(n => n.id);
+    return ok(c, { path, results: 'Simulation complete' });
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));

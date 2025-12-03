@@ -2,8 +2,8 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -91,5 +91,22 @@ export class DealEntity extends IndexedEntity<Deal> {
   static seedData = MOCK_DEALS;
   async updateStage(newStage: string): Promise<Deal> {
     return this.mutate(s => ({ ...s, stage: newStage, updatedAt: Date.now() }));
+  }
+}
+// WORKFLOW ENTITY
+export class WorkflowEntity extends IndexedEntity<Workflow> {
+  static readonly entityName = "workflow";
+  static readonly indexName = "workflows";
+  static readonly initialState: Workflow = {
+    id: "",
+    name: "",
+    nodes: [],
+    edges: [],
+    createdAt: 0,
+    updatedAt: 0,
+  };
+  static seedData = MOCK_WORKFLOWS;
+  async update(nodes: WorkflowNode[], edges: WorkflowEdge[]): Promise<Workflow> {
+    return this.mutate(s => ({ ...s, nodes, edges, updatedAt: Date.now() }));
   }
 }
