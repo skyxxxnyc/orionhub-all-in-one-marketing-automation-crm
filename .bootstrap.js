@@ -80,7 +80,8 @@ function runSetupCommands() {
     const commands = [
     "bun add papaparse@^5.4.1",
     "bun add @stripe/stripe-js@^4.3.0",
-    "bun add stripe@^16.10.0"
+    "bun add stripe@^16.10.0",
+    "bun install reactflow"
 ];
     
     if (commands.length === 0) {
