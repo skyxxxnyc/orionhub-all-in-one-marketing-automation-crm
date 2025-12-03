@@ -12,6 +12,7 @@ export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
     trigger: 'bg-green-500/20 border-green-500/50 text-green-300',
     action: 'bg-blue-500/20 border-blue-500/50 text-blue-300',
     condition: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300',
+    end: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300',
   };
   return (
     <motion.div
@@ -25,24 +26,27 @@ export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
       )}>
         <CardContent className="p-3">
           <div className="flex items-center gap-3">
-            <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", typeColorMap[data.type])}>
+            <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", typeColorMap[data.type as keyof typeof typeColorMap])}>
               <Icon className="h-5 w-5" />
             </div>
             <div className="flex-grow">
               <p className="font-semibold text-sm text-white">{data.label}</p>
-              <Badge variant="outline" className={cn("text-xs capitalize", typeColorMap[data.type])}>{data.type}</Badge>
+              <Badge variant="outline" className={cn("text-xs capitalize", typeColorMap[data.type as keyof typeof typeColorMap])}>{data.type}</Badge>
             </div>
           </div>
+          {data.config?.subject && <p className="text-xs text-muted-foreground mt-1 truncate">Subject: {data.config.subject}</p>}
         </CardContent>
       </Card>
-      <Handle type="target" position={Position.Left} className="!bg-slate-500" />
-      {data.type === 'condition' ? (
-        <>
-          <Handle type="source" position={Position.Right} id="yes" style={{ top: '33%' }} className="!bg-green-500" />
-          <Handle type="source" position={Position.Right} id="no" style={{ top: '66%' }} className="!bg-red-500" />
-        </>
-      ) : (
-        <Handle type="source" position={Position.Right} className="!bg-slate-500" />
+      {data.type !== 'trigger' && <Handle type="target" position={Position.Left} className="!bg-slate-500" />}
+      {data.type !== 'end' && (
+        data.type === 'condition' ? (
+          <>
+            <Handle type="source" position={Position.Right} id="yes" style={{ top: '33%' }} className="!bg-green-500" />
+            <Handle type="source" position={Position.Right} id="no" style={{ top: '66%' }} className="!bg-red-500" />
+          </>
+        ) : (
+          <Handle type="source" position={Position.Right} className="!bg-slate-500" />
+        )
       )}
     </motion.div>
   );
