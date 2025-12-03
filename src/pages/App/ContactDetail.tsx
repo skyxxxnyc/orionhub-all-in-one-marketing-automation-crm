@@ -7,12 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MessageSquare, Workflow, StickyNote, Paperclip, Plus } from "lucide-react";
+import { ArrowLeft, MessageSquare, Workflow, StickyNote, Paperclip, Plus, Sparkles } from "lucide-react";
 import { api } from "@/lib/api-client";
 import type { Contact, ContactActivity } from "@shared/types";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { useAuthStore } from "@/lib/mock-auth";
+import { motion } from "framer-motion";
 const fetchContact = async (id: string) => api<Contact>(`/api/contacts/${id}`);
 const ActivityIcon = ({ type }: { type: ContactActivity['type'] }) => {
   const iconMap = {
@@ -27,6 +29,7 @@ export function ContactDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const currentOrg = useAuthStore(s => s.currentOrg);
   const [note, setNote] = useState('');
   const { data: contact, isLoading, isError } = useQuery({
     queryKey: ['contact', id],
@@ -49,6 +52,29 @@ export function ContactDetail() {
     onSuccess: () => {
       setNote('');
     }
+  });
+  const enrichMutation = useMutation({
+    mutationFn: async (contactId: string) => {
+      const currentContact = await fetchContact(contactId);
+      const perplexityKey = currentOrg ? localStorage.getItem(`perplexity_key_${currentOrg.id}`) : null;
+      if (!perplexityKey) {
+        throw new Error("Perplexity API key not set.");
+      }
+      const prompt = `Research prospect: ${currentContact.name} (${currentContact.email})`;
+      const res: any = await api('/api/perplexity/completions', {
+        method: 'POST',
+        body: JSON.stringify({ prompt }),
+        headers: { 'PICA_SECRET_KEY': 'mock-secret' }
+      });
+      // Mock parsing of the response
+      const newFields = {
+        social: 'twitter.com/mock_user',
+        bio: res.choices[0].message.content,
+      };
+      await updateContactMutation.mutateAsync({ customFields: { ...currentContact.customFields, ...newFields } });
+    },
+    onSuccess: () => toast.success('Prospect enriched successfully!'),
+    onError: (error: Error) => toast.error(`Enrichment failed: ${error.message}`),
   });
   if (isLoading) {
     return (
@@ -81,7 +107,7 @@ export function ContactDetail() {
         <Button variant="ghost" onClick={() => navigate('/app/contacts')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Contacts
         </Button>
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
           <Avatar className="h-16 w-16">
             <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${contact.name}`} alt={contact.name} />
             <AvatarFallback>{getInitials(contact.name)}</AvatarFallback>
@@ -91,7 +117,11 @@ export function ContactDetail() {
             <p className="text-muted-foreground">{contact.email}</p>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button variant="outline">Send Email</Button>
+            <motion.div whileHover={{ scale: 1.05 }}>
+              <Button variant="outline" onClick={() => enrichMutation.mutate(contact.id)} disabled={enrichMutation.isPending}>
+                <Sparkles className="mr-2 h-4 w-4" /> {enrichMutation.isPending ? 'Enriching...' : 'Enrich with AI'}
+              </Button>
+            </motion.div>
             <Button>Start Automation</Button>
           </div>
         </div>
@@ -158,8 +188,8 @@ export function ContactDetail() {
                 </div>
                 {Object.entries(contact.customFields).map(([key, value]) => (
                   <div key={key}>
-                    <h4 className="font-semibold text-sm capitalize">{key}</h4>
-                    <p className="text-muted-foreground">{String(value)}</p>
+                    <h4 className="font-semibold text-sm capitalize">{key.replace(/([A-Z])/g, ' $1')}</h4>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{String(value)}</p>
                   </div>
                 ))}
               </CardContent>

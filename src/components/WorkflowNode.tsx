@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils';
 import type { NodeData } from '@shared/types';
 export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
   const Icon = (LucideIcons as any)[data.icon] || LucideIcons.HelpCircle;
+  const isIntegration = ['Send Gmail Sequence', 'Schedule Calendar Event', 'Research Prospect'].includes(data.label);
   const typeColorMap = {
     trigger: 'bg-green-500/20 border-green-500/50 text-green-300',
-    action: 'bg-blue-500/20 border-blue-500/50 text-blue-300',
+    action: isIntegration ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-blue-500/20 border-blue-500/50 text-blue-300',
     condition: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300',
     end: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300',
   };
@@ -19,6 +20,7 @@ export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
+      whileHover={{ y: -2, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
     >
       <Card className={cn(
         "w-56 border-2 bg-slate-800/50 backdrop-blur-sm",
@@ -31,10 +33,13 @@ export const CustomNode = memo(({ data, selected }: NodeProps<NodeData>) => {
             </div>
             <div className="flex-grow">
               <p className="font-semibold text-sm text-white">{data.label}</p>
-              <Badge variant="outline" className={cn("text-xs capitalize", typeColorMap[data.type as keyof typeof typeColorMap])}>{data.type}</Badge>
+              <Badge variant="outline" className={cn("text-xs capitalize", typeColorMap[data.type as keyof typeof typeColorMap])}>
+                {isIntegration ? 'Integration' : data.type}
+              </Badge>
             </div>
           </div>
           {data.config?.subject && <p className="text-xs text-muted-foreground mt-1 truncate">Subject: {data.config.subject}</p>}
+          {data.label.includes('Gmail') && <p className="text-xs text-muted-foreground mt-1">To: {'{{contact.email}}'}</p>}
         </CardContent>
       </Card>
       {data.type !== 'trigger' && <Handle type="target" position={Position.Left} className="!bg-slate-500" />}

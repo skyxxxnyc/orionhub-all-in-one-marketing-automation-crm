@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent } from "@shared/types";
 import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
@@ -12,9 +12,68 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       PipelineEntity.ensureSeed(c.env), DealEntity.ensureSeed(c.env), WorkflowEntity.ensureSeed(c.env),
       WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
       BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
-      TicketEntity.ensureSeed(c.env)
+      TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env)
     ]);
     await next();
+  });
+  // --- Integration Routes ---
+  const checkSecret = (c: any) => c.req.header('PICA_SECRET_KEY') === 'mock-secret';
+  app.post('/api/gmail/send', async (c) => {
+    if (!checkSecret(c)) return bad(c, 'Unauthorized');
+    const { to, subject, body } = await c.req.json();
+    console.log(`[MOCK GMAIL] Sending email to ${to} with subject "${subject}"`);
+    return ok(c, { success: true, messageId: crypto.randomUUID() });
+  });
+  app.post('/api/gmail/import', async (c) => {
+    if (!checkSecret(c)) return bad(c, 'Unauthorized');
+    const { contactId } = await c.req.json();
+    console.log(`[MOCK GMAIL] Importing activity for contact ${contactId}`);
+    // Mock adding an activity to a contact
+    if (contactId) {
+      const contact = new ContactEntity(c.env, contactId);
+      if (await contact.exists()) {
+        await contact.mutate(s => ({
+          ...s,
+          activities: [{ type: 'email', content: 'Imported from Gmail', date: Date.now() }, ...s.activities]
+        }));
+      }
+    }
+    return ok(c, { success: true, importedCount: 1 });
+  });
+  app.post('/api/calendar/quickAdd', async (c) => {
+    if (!checkSecret(c)) return bad(c, 'Unauthorized');
+    const { text } = await c.req.json();
+    console.log(`[MOCK CALENDAR] Quick adding event: "${text}"`);
+    // Mock parsing and creating an event
+    const eventData: CalendarEvent = {
+      id: crypto.randomUUID(),
+      title: text.split(' at ')[0] || 'New Event',
+      start: Date.now() + 86400000, // Tomorrow
+      end: Date.now() + 86400000 + 3600000, // 1 hour later
+    };
+    await CalendarEventEntity.create(c.env, eventData);
+    return ok(c, eventData);
+  });
+  app.post('/api/calendar/events', async (c) => {
+    if (!checkSecret(c)) return bad(c, 'Unauthorized');
+    const { title, start, end } = await c.req.json();
+    console.log(`[MOCK CALENDAR] Creating event: "${title}"`);
+    const eventData: CalendarEvent = { id: crypto.randomUUID(), title, start, end };
+    await CalendarEventEntity.create(c.env, eventData);
+    return ok(c, eventData);
+  });
+  app.post('/api/perplexity/completions', async (c) => {
+    if (!checkSecret(c)) return bad(c, 'Unauthorized');
+    const { prompt } = await c.req.json();
+    console.log(`[MOCK PERPLEXITY] Getting completion for prompt: "${prompt}"`);
+    const mockResponse = {
+      choices: [{
+        message: {
+          content: `Mock prospect research for "${prompt}":\n- Found email: prospect@example.com\n- Social media: twitter.com/prospect_user`
+        }
+      }]
+    };
+    return ok(c, mockResponse);
   });
   // User routes with workspace filtering
   app.get('/api/users', async (c) => {
@@ -116,9 +175,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.post('/api/tickets', async (c) => {
     const data = await c.req.json() as Partial<Ticket>;
     if (!data.title || !data.description || !data.orgId) return bad(c, 'Missing required fields');
-    // Mock RBAC check
-    // const user = await UserEntity.get(c.env, 'u1');
-    // if(!user.permissions.includes('tickets:write')) return bad(c, 'Insufficient permissions');
     const ticketData: Ticket = {
         id: crypto.randomUUID(),
         title: data.title,
@@ -142,7 +198,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/:entity/export', async (c) => {
     const { entity } = c.req.param();
     const { from, to, format = 'json', limit = '1000' } = c.req.query();
-    // TODO: Add RBAC check for export permissions
     const EntityMap = {
       contacts: ContactEntity,
       deals: DealEntity,
@@ -155,8 +210,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'Invalid entity type for export');
     }
     const { items } = await EntityClass.list(c.env, null, parseInt(limit, 10));
-    // TODO: Add date filtering based on `from` and `to` query params
-    // For now, returning all items for the mock
     return ok(c, items);
   });
   // Other routes...
