@@ -144,9 +144,21 @@ export class TicketEntity extends IndexedEntity<Ticket> {
   async resolve(): Promise<Ticket> {
     return this.patch({ status: "resolved", resolvedAt: Date.now() });
   }
+  /**
+   * Lists tickets for a specific organization, matching the IndexedEntity.list signature.
+   * @param env - The worker environment.
+   * @param orgId - The ID of the organization to filter tickets by.
+   * @returns A promise that resolves to a page of tickets for the given organization.
+   */
   static async listByOrg(env: Env, orgId: string): Promise<{ items: Ticket[]; next: string | null }> {
+    // In a real application, this would be a more efficient query.
+    // For this mock implementation, we fetch all and filter.
     const all = await this.list(env);
     const items = all.items.filter(t => t.orgId === orgId);
-    return { items, next: null }; // Simplified for mock
+    // Simple pagination for mock
+    const limit = 50;
+    const paginatedItems = items.slice(0, limit);
+    const next = items.length > limit ? paginatedItems[limit - 1].id : null;
+    return { items: paginatedItems, next };
   }
 }

@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import { OnboardingTooltip } from "@/components/OnboardingTooltip";
 function AccountSettings() {
   const user = useAuthStore(s => s.user);
   return (
@@ -36,6 +38,7 @@ function AccountSettings() {
 export function Settings() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const isAgency = currentOrg?.type === 'agency';
+  const MotionTabsContent = motion(TabsContent);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
@@ -48,43 +51,45 @@ export function Settings() {
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <OnboardingTooltip tourId="settings-integrations" content="Connect external services here.">
+              <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            </OnboardingTooltip>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="api">API</TabsTrigger>
             {isAgency && <TabsTrigger value="branding">Branding</TabsTrigger>}
             <TabsTrigger value="help">Help & Support</TabsTrigger>
           </TabsList>
-          <TabsContent value="account" className="mt-6">
+          <MotionTabsContent value="account" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <AccountSettings />
-          </TabsContent>
-          <TabsContent value="team" className="mt-6">
+          </MotionTabsContent>
+          <MotionTabsContent value="team" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <TeamManagement />
-          </TabsContent>
-          <TabsContent value="billing" className="mt-6">
+          </MotionTabsContent>
+          <MotionTabsContent value="billing" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <StripeBilling />
-          </TabsContent>
-          <TabsContent value="integrations" className="mt-6">
+          </MotionTabsContent>
+          <MotionTabsContent value="integrations" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <IntegrationSettings />
-          </TabsContent>
-          <TabsContent value="webhooks" className="mt-6">
+          </MotionTabsContent>
+          <MotionTabsContent value="webhooks" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <WebhookManager />
-          </TabsContent>
-          <TabsContent value="api" className="mt-6">
+          </MotionTabsContent>
+          <MotionTabsContent value="api" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <APIKeyManager />
-          </TabsContent>
+          </MotionTabsContent>
           {isAgency && (
-            <TabsContent value="branding" className="mt-6">
+            <MotionTabsContent value="branding" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <BrandingSettings />
-            </TabsContent>
+            </MotionTabsContent>
           )}
-          <TabsContent value="help" className="mt-6">
+          <MotionTabsContent value="help" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <SupportTicketSystem />
             <div className="mt-4">
               <Button variant="link" asChild>
                 <Link to="/app/help">View Full Help Center</Link>
               </Button>
             </div>
-          </TabsContent>
+          </MotionTabsContent>
         </Tabs>
       </div>
     </div>

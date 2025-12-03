@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Papa from 'papaparse';
 import { useDebounce } from 'react-use';
@@ -100,35 +100,35 @@ export function Contacts() {
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate('/app/contacts/new')}><PlusCircle className="mr-2 h-4 w-4" /> Add Contact</Button>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline"><Import className="mr-2 h-4 w-4" /> Import</Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Import Contacts</SheetTitle>
-                </SheetHeader>
-                <div className="py-4">
-                  <p className="text-sm text-muted-foreground mb-4">Upload a CSV file with 'name' and 'email' columns.</p>
-                  <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
-                  <Button onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}>
-                    {importMutation.isPending ? 'Importing...' : 'Choose CSV File'}
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
+            <OnboardingTooltip tourId="import-contacts" content="Import from CSV to add multiple contacts at once.">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline"><Import className="mr-2 h-4 w-4" /> Import</Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Import Contacts</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-4">
+                    <p className="text-sm text-muted-foreground mb-4">Upload a CSV file with 'name' and 'email' columns.</p>
+                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
+                    <Button onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}>
+                      {importMutation.isPending ? 'Importing...' : 'Choose CSV File'}
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </OnboardingTooltip>
             <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export</Button>
           </div>
         </div>
         <div className="mb-4 flex items-center justify-between gap-2">
-          <div className="relative w-full max-w-sm">
-            <OnboardingTooltip tourId="search-contacts" content="Search by name, email, or tags.">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search contacts..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-              </div>
-            </OnboardingTooltip>
-          </div>
+          <OnboardingTooltip tourId="search-contacts" content="Search by name, email, or tags.">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search contacts..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+          </OnboardingTooltip>
           {selected.length > 0 && (
             <OnboardingTooltip tourId="bulk-actions" content="Perform actions on multiple contacts at once.">
               <div className="flex items-center gap-2 animate-fade-in">
@@ -174,8 +174,10 @@ export function Contacts() {
                 contacts.map((contact) => (
                   <motion.tr
                     key={contact.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
                     className="hover:bg-muted/50 cursor-pointer"
                     onClick={() => navigate(`/app/contacts/${contact.id}`)}
                   >
