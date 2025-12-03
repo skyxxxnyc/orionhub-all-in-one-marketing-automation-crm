@@ -4,16 +4,16 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api-client';
-import type { Workflow } from '@shared/types';
+import type { WorkflowState } from '@shared/types';
 import { ReactFlow, MiniMap } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useAuthStore } from '@/lib/mock-auth';
 import { Badge } from './ui/badge';
-const fetchWorkflowTemplates = async (orgId?: string) => api<{ items: Workflow[] }>('/api/workflows/templates', { query: { orgId } });
+const fetchWorkflowTemplates = async (orgId?: string) => api<{ items: WorkflowState[] }>('/api/workflows/templates', { query: { orgId } });
 interface WorkflowTemplatesProps {
-  onSelect: (template: Workflow) => void;
+  onSelect: (template: WorkflowState) => void;
 }
 export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
   const currentOrg = useAuthStore(s => s.currentOrg);
@@ -30,7 +30,7 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
       template.category?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [data, searchTerm]);
-  const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: Workflow) => {
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: WorkflowState) => {
     event.dataTransfer.setData('application/reactflow-template', JSON.stringify(template));
     event.dataTransfer.effectAllowed = 'move';
   };

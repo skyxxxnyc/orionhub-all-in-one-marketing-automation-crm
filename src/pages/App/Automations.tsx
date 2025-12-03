@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
-import type { Workflow, WorkflowNode, WorkflowEdge } from '@shared/types';
+import type { WorkflowState, WorkflowNode, WorkflowEdge } from '@shared/types';
 import { CustomNode } from '@/components/WorkflowNode';
 import { WorkflowToolbox } from '@/components/WorkflowToolbox';
 import { WorkflowInspector } from '@/components/WorkflowInspector';
@@ -26,10 +26,10 @@ import { WorkflowJourneyViewer } from '@/components/WorkflowJourneyViewer';
 import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/mock-auth';
-const fetchWorkflows = async () => api<{ items: Workflow[] }>('/api/workflows');
+const fetchWorkflows = async () => api<{ items: WorkflowState[] }>('/api/workflows');
 const nodeTypes: NodeTypes = { custom: CustomNode };
 export function Automations() {
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowState | null>(null);
   const [nodes, setNodes] = useState<WorkflowNode[]>([]);
   const [edges, setEdges] = useState<WorkflowEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
@@ -55,7 +55,7 @@ export function Automations() {
     onSuccess: () => toast.success('Workflow saved as template!'),
     onError: () => toast.error('Failed to save template.'),
   });
-  const handleSelectWorkflow = (workflow: Workflow) => {
+  const handleSelectWorkflow = (workflow: WorkflowState) => {
     setSelectedWorkflow(workflow);
     setNodes(workflow.nodes);
     setEdges(workflow.edges);
@@ -83,8 +83,8 @@ export function Automations() {
       nds.map((node) => node.id === nodeId ? { ...node, data: { ...node.data, config } } : node)
     );
   };
-  const handleTemplateSelect = (template: Workflow) => {
-    const newWorkflow: Workflow = {
+  const handleTemplateSelect = (template: WorkflowState) => {
+    const newWorkflow: WorkflowState = {
       ...template,
       id: `wf-${crypto.randomUUID()}`,
       name: `Copy of ${template.name}`,

@@ -1,7 +1,7 @@
 import { IndexedEntity } from "./core-utils";
 import type { Env } from './core-utils';
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article, WorkflowState, Project, Template } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES, MOCK_WORKFLOW_TEMPLATES, MOCK_PROJECTS, MOCK_TEMPLATE_GALLERY } from "@shared/mock-data";
 // USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user"; static readonly indexName = "users";
@@ -36,24 +36,29 @@ export class DealEntity extends IndexedEntity<Deal> {
   static readonly initialState: Deal = { id: "", title: "", value: 0, stage: "", createdAt: 0, updatedAt: 0 }; static seedData = MOCK_DEALS;
 }
 // WORKFLOW ENTITY
-export interface ABVariant { id: string; nodes: WorkflowNode[]; edges: WorkflowEdge[]; traffic: number; metrics: { completions: number; runs: number } }
-export interface ExecutionLog { id: string; contactId: string; path: string[]; status: 'completed' | 'error' | 'running'; timestamp: number }
-export type WorkflowState = Workflow & { variants: ABVariant[]; executions: ExecutionLog[]; isTemplate: boolean; paused: boolean };
-export const MOCK_WORKFLOW_TEMPLATES: WorkflowState[] = [
-  { ...MOCK_WORKFLOWS[0], id: 'template-1', name: 'Lead Nurturing Template', isTemplate: true, variants: [], executions: [], paused: false },
-  { ...MOCK_WORKFLOWS[0], id: 'template-2', name: 'Onboarding Sequence', isTemplate: true, variants: [], executions: [], paused: false, nodes: MOCK_WORKFLOWS[0].nodes.slice(0, 3), edges: MOCK_WORKFLOWS[0].edges.slice(0, 2) },
-];
 export class WorkflowEntity extends IndexedEntity<WorkflowState> {
   static readonly entityName = "workflow"; static readonly indexName = "workflows";
-  static readonly initialState: WorkflowState = { id: "", name: "", nodes: [], edges: [], createdAt: 0, updatedAt: 0, variants: [], executions: [], isTemplate: false, paused: false };
-  static seedData = [...MOCK_WORKFLOWS.map(w => ({ ...w, variants: [], executions: [], isTemplate: false, paused: false })), ...MOCK_WORKFLOW_TEMPLATES];
+  static readonly initialState: WorkflowState = { id: "", name: "", nodes: [], edges: [], createdAt: 0, updatedAt: 0, variants: [], executions: [], isTemplate: false, paused: false, orgId: '' };
+  static seedData = [...MOCK_WORKFLOWS.map(w => ({ ...w, variants: [], executions: [], isTemplate: false, paused: false, orgId: 'org-1' })), ...MOCK_WORKFLOW_TEMPLATES];
   async update(nodes: WorkflowNode[], edges: WorkflowEdge[]): Promise<WorkflowState> { return this.mutate(s => ({ ...s, nodes, edges, updatedAt: Date.now() })); }
-  async pause(): Promise<WorkflowState> { return this.mutate(s => ({ ...s, paused: true })); }
-  async resume(): Promise<WorkflowState> { return this.mutate(s => ({ ...s, paused: false })); }
-  async simulateRun(contactId: string): Promise<ExecutionLog> {
-    const log: ExecutionLog = { id: crypto.randomUUID(), contactId, path: this.state.nodes.map(n => n.id), status: 'completed', timestamp: Date.now() };
-    await this.mutate(s => ({ ...s, executions: [...s.executions, log] })); return log;
-  }
+}
+// PAGE ENTITY
+export class PageEntity extends IndexedEntity<Page> {
+  static readonly entityName = "page"; static readonly indexName = "pages";
+  static readonly initialState: Page = { id: "", name: "", content: [], analytics: { views: 0, conversions: 0 }, createdAt: 0, description: '', isTemplate: false, orgId: '' }; static seedData = MOCK_PAGES;
+}
+// PROJECT ENTITY
+export class ProjectEntity extends IndexedEntity<Project> {
+  static readonly entityName = "project"; static readonly indexName = "projects";
+  static readonly initialState: Project = { id: "", name: "", type: "funnel", ownerId: "", status: "draft", version: 1, collaborators: [], orgId: "", workspaceId: "", createdAt: 0, analytics: { views: 0, completions: 0, revenue: 0 } };
+  static seedData = MOCK_PROJECTS;
+}
+// TEMPLATE ENTITY
+export class TemplateEntity extends IndexedEntity<Template> {
+  static readonly entityName = "template"; static readonly indexName = "templates";
+  static readonly initialState: Template = { id: "", type: "funnel", name: "", description: "", category: "", industry: "", complexity: "simple", isUserGenerated: false, public: false, orgId: "", metrics: { views: 0, completions: 0, adoption: 0 } };
+  static seedData = MOCK_TEMPLATE_GALLERY;
+  async share(isPublic: boolean) { return this.patch({ public: isPublic }); }
 }
 // OTHER ENTITIES
 export class EmailTemplateEntity extends IndexedEntity<EmailTemplate> {
@@ -71,10 +76,6 @@ export class CampaignEntity extends IndexedEntity<Campaign> {
 export class ConversationEntity extends IndexedEntity<Conversation> {
   static readonly entityName = "conversation"; static readonly indexName = "conversations";
   static readonly initialState: Conversation = { id: "", contactId: "", channel: "email", messages: [], status: "open", lastMessageAt: 0 }; static seedData = MOCK_CONVERSATIONS;
-}
-export class PageEntity extends IndexedEntity<Page> {
-  static readonly entityName = "page"; static readonly indexName = "pages";
-  static readonly initialState: Page = { id: "", name: "", content: [], analytics: { views: 0, conversions: 0 }, createdAt: 0 }; static seedData = MOCK_PAGES;
 }
 export class FunnelEntity extends IndexedEntity<Funnel> {
   static readonly entityName = "funnel"; static readonly indexName = "funnels";
@@ -99,8 +100,6 @@ export class IntegrationEntity extends IndexedEntity<Integration> {
 export class OrganizationEntity extends IndexedEntity<Organization> {
   static readonly entityName = "organization"; static readonly indexName = "organizations";
   static readonly initialState: Organization = { id: "", name: "", type: "client", branding: {}, workspaces: [], ownerId: "", createdAt: 0 }; static seedData = MOCK_ORGANIZATIONS;
-  static async exists(env: Env, id: string): Promise<boolean> { return (await new this(env, id).exists()); }
-  async updateBranding(branding: Organization['branding']) { return this.patch({ branding }); }
 }
 export class WorkspaceEntity extends IndexedEntity<Workspace> {
   static readonly entityName = "workspace"; static readonly indexName = "workspaces";
@@ -118,18 +117,11 @@ export class WebhookEntity extends IndexedEntity<Webhook> {
   static readonly entityName = "webhook"; static readonly indexName = "webhooks";
   static readonly initialState: Webhook = { id: "", url: "", events: [], active: false };
   static seedData = MOCK_WEBHOOKS;
-  async test() { console.log(`[MOCK WEBHOOK] Firing test event for ${this.state.url}`); }
 }
 export class APIKeyEntity extends IndexedEntity<APIKey> {
   static readonly entityName = "apiKey"; static readonly indexName = "apiKeys";
   static readonly initialState: APIKey = { id: "", key: "", permissions: [] };
   static seedData = MOCK_API_KEYS;
-  static async generate(env: Env, userId: string, permissions: string[]): Promise<APIKey> {
-    const key = `orion_sk_${crypto.randomUUID().replace(/-/g, '')}`;
-    const apiKey: APIKey = { id: crypto.randomUUID(), key, permissions };
-    await this.create(env, apiKey);
-    return apiKey;
-  }
 }
 export class ReportEntity extends IndexedEntity<{ id: string; orgId: string; metrics: ReportMetrics }> {
     static readonly entityName = "report"; static readonly indexName = "reports";
@@ -145,21 +137,9 @@ export class TicketEntity extends IndexedEntity<Ticket> {
     await this.patch({ status: "resolved", resolvedAt: Date.now() });
     return await this.getState();
   }
-  /**
-   * Lists tickets for a specific organization, matching the IndexedEntity.list signature.
-   * @param env - The worker environment.
-   * @param orgId - The ID of the organization to filter tickets by.
-   * @returns A promise that resolves to a page of tickets for the given organization.
-   */
   static async listByOrg(env: Env, orgId: string): Promise<{ items: Ticket[]; next: string | null }> {
-    // In a real application, this would be a more efficient query.
-    // For this mock implementation, we fetch all and filter.
     const all = await this.list(env);
     const items = all.items.filter(t => t.orgId === orgId);
-    // Simple pagination for mock
-    const limit = 50;
-    const paginatedItems = items.slice(0, limit);
-    const next = items.length > limit ? paginatedItems[limit - 1].id : null;
-    return { items: paginatedItems, next };
+    return { items, next: null };
   }
 }

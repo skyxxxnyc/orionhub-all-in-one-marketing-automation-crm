@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template } from "@shared/types";
 import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES, MOCK_PAGE_TEMPLATES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
@@ -12,80 +12,74 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       PipelineEntity.ensureSeed(c.env), DealEntity.ensureSeed(c.env), WorkflowEntity.ensureSeed(c.env),
       WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
       BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
-      TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env), PageEntity.ensureSeed(c.env)
+      TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env), PageEntity.ensureSeed(c.env),
+      ProjectEntity.ensureSeed(c.env), TemplateEntity.ensureSeed(c.env),
     ]);
     await next();
+  });
+  // --- Project & Template Routes ---
+  app.get('/api/projects', async (c) => {
+    const { orgId } = c.req.query();
+    if (!orgId) return bad(c, 'orgId required');
+    const all = await ProjectEntity.list(c.env);
+    const filtered = all.items.filter(p => p.orgId === orgId);
+    return ok(c, { items: filtered });
+  });
+  app.post('/api/projects', async (c) => {
+    const data = await c.req.json() as Partial<Project>;
+    if (!data.orgId) return bad(c, 'orgId required');
+    const projectData = { ...ProjectEntity.initialState, ...data, id: crypto.randomUUID(), createdAt: Date.now() };
+    const project = await ProjectEntity.create(c.env, projectData);
+    return ok(c, project);
+  });
+  app.get('/api/templates', async (c) => {
+    const { type, orgId } = c.req.query();
+    let { items } = await TemplateEntity.list(c.env);
+    if (type) items = items.filter(t => t.type === type);
+    if (orgId) items = items.filter(t => t.orgId === orgId || t.public);
+    return ok(c, { items });
+  });
+  app.post('/api/ai/templates', async (c) => {
+    const { prompt, type, orgId } = await c.req.json();
+    if (!prompt || !type || !orgId) return bad(c, 'prompt, type, and orgId are required');
+    // Mock Perplexity response parsing
+    const generatedTemplate: Template = {
+      id: `template-ai-${crypto.randomUUID()}`,
+      name: `AI: ${prompt.substring(0, 20)}...`,
+      description: prompt,
+      type: type as Template['type'],
+      category: 'AI Generated',
+      industry: 'various',
+      complexity: 'medium',
+      isUserGenerated: true,
+      public: false,
+      orgId,
+      metrics: { views: 0, completions: 0, adoption: 0 },
+    };
+    await TemplateEntity.create(c.env, generatedTemplate);
+    return ok(c, generatedTemplate);
   });
   // --- Integration Routes ---
   const checkSecret = (c: any) => c.req.header('PICA_SECRET_KEY') === 'mock-secret';
   app.post('/api/gmail/send', async (c) => {
     if (!checkSecret(c)) return bad(c, 'Unauthorized');
-    const { to, subject, body } = await c.req.json();
-    console.log(`[MOCK GMAIL] Sending email to ${to} with subject "${subject}"`);
     return ok(c, { success: true, messageId: crypto.randomUUID() });
-  });
-  app.post('/api/gmail/import', async (c) => {
-    if (!checkSecret(c)) return bad(c, 'Unauthorized');
-    const { contactId } = await c.req.json();
-    console.log(`[MOCK GMAIL] Importing activity for contact ${contactId}`);
-    if (contactId) {
-      const contact = new ContactEntity(c.env, contactId);
-      if (await contact.exists()) {
-        await contact.mutate(s => ({
-          ...s,
-          activities: [{ type: 'email', content: 'Imported from Gmail', date: Date.now() }, ...s.activities]
-        }));
-      }
-    }
-    return ok(c, { success: true, importedCount: 1 });
   });
   app.post('/api/calendar/quickAdd', async (c) => {
     if (!checkSecret(c)) return bad(c, 'Unauthorized');
     const { text } = await c.req.json();
-    console.log(`[MOCK CALENDAR] Quick adding event: "${text}"`);
-    const eventData: CalendarEvent = {
-      id: crypto.randomUUID(),
-      title: text.split(' at ')[0] || 'New Event',
-      start: Date.now() + 86400000,
-      end: Date.now() + 86400000 + 3600000,
-    };
-    await CalendarEventEntity.create(c.env, eventData);
-    return ok(c, eventData);
-  });
-  app.post('/api/calendar/events', async (c) => {
-    if (!checkSecret(c)) return bad(c, 'Unauthorized');
-    const { title, start, end } = await c.req.json();
-    console.log(`[MOCK CALENDAR] Creating event: "${title}"`);
-    const eventData: CalendarEvent = { id: crypto.randomUUID(), title, start, end };
+    const eventData: CalendarEvent = { id: crypto.randomUUID(), title: text, start: Date.now(), end: Date.now() + 3600000 };
     await CalendarEventEntity.create(c.env, eventData);
     return ok(c, eventData);
   });
   app.post('/api/perplexity/completions', async (c) => {
     if (!checkSecret(c)) return bad(c, 'Unauthorized');
     const { prompt } = await c.req.json();
-    console.log(`[MOCK PERPLEXITY] Getting completion for prompt: "${prompt}"`);
-    const mockResponse = {
-      choices: [{
-        message: {
-          content: `Mock prospect research for "${prompt}":\n- Found email: prospect@example.com\n- Social media: twitter.com/prospect_user`
-        }
-      }]
-    };
+    const mockResponse = { choices: [{ message: { content: `Mock research for "${prompt}"` } }] };
     return ok(c, mockResponse);
   });
-  // User routes with workspace filtering
-  app.get('/api/users', async (c) => {
-    const { workspaceId } = c.req.query();
-    const allUsers = (await UserEntity.list(c.env)).items;
-    if (workspaceId) {
-      const workspace = MOCK_WORKSPACES.find(ws => ws.id === workspaceId);
-      if (workspace) {
-        const workspaceUsers = allUsers.filter(u => workspace.users.includes(u.id));
-        return ok(c, { items: workspaceUsers });
-      }
-    }
-    return ok(c, { items: allUsers });
-  });
+  // --- Existing Routes ---
+  app.get('/api/users', async (c) => ok(c, await UserEntity.list(c.env)));
   app.get('/api/chats', async (c) => ok(c, await ChatBoardEntity.list(c.env)));
   app.get('/api/contacts', async (c) => ok(c, await ContactEntity.list(c.env)));
   app.get('/api/pipelines/:id', async (c) => {
@@ -104,28 +98,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await deal.patch({ stage, updatedAt: Date.now() });
     return ok(c, await deal.getState());
   });
-  // Workflow routes
   app.get('/api/workflows', async (c) => {
     const page = await WorkflowEntity.list(c.env);
     page.items = page.items.filter(w => !w.isTemplate);
     return ok(c, page);
-  });
-  app.get('/api/workflows/templates', async (c) => {
-    const { orgId } = c.req.query();
-    const all = await WorkflowEntity.list(c.env);
-    const templates = all.items.filter(w => w.isTemplate && (!orgId || w.orgId === orgId));
-    return ok(c, { items: templates });
-  });
-  app.post('/api/workflows/templates', async (c) => {
-    const { name, nodes, edges, orgId } = await c.req.json();
-    if (!orgId) return bad(c, 'orgId is required');
-    const templateData: Partial<WorkflowState> = {
-      id: crypto.randomUUID(), name, nodes, edges, orgId,
-      isTemplate: true, createdAt: Date.now(), updatedAt: Date.now(),
-      variants: [], executions: [], paused: false,
-    };
-    const template = await WorkflowEntity.create(c.env, templateData as WorkflowState);
-    return ok(c, template);
   });
   app.get('/api/workflows/:id', async (c) => {
     const workflow = new WorkflowEntity(c.env, c.req.param('id'));
@@ -139,117 +115,31 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!nodes || !edges) return bad(c, 'nodes and edges are required');
     return ok(c, await workflow.update(nodes, edges));
   });
-  app.patch('/api/workflows/:id/analytics', async (c) => {
-    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
-    if (!await workflow.exists()) return notFound(c);
-    const { runs, completions } = await c.req.json();
-    const currentState = await workflow.getState();
-    await workflow.patch({ metrics: { ...currentState.metrics, runs, completions } });
-    return ok(c, await workflow.getState());
+  app.get('/api/pages/:id', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) return notFound(c);
+    return ok(c, await page.getState());
   });
-  // Page & Funnel Templates
-  app.get('/api/pages/templates', async (c) => {
-    const { orgId } = c.req.query();
-    // Using mock data for now as PageEntity doesn't have orgId yet
-    const templates = MOCK_PAGE_TEMPLATES.filter(p => !orgId || p.orgId === orgId);
-    return ok(c, { items: templates });
-  });
-  app.post('/api/pages/templates', async (c) => {
-    const { name, content, orgId, seo } = await c.req.json();
-    if (!orgId) return bad(c, 'orgId is required');
-    const templateData: Page = {
-      id: crypto.randomUUID(), name, content, orgId, seo,
-      isTemplate: true, createdAt: Date.now(),
-      analytics: { views: 0, conversions: 0 },
-    };
-    const template = await PageEntity.create(c.env, templateData);
-    return ok(c, template);
-  });
-  // Multi-tenant routes
-  app.put('/api/organizations/:id/branding', async (c) => {
-    const org = new OrganizationEntity(c.env, c.req.param('id'));
-    if (!await org.exists()) return notFound(c);
-    const branding = await c.req.json();
-    await org.updateBranding(branding);
-    return ok(c, await org.getState());
-  });
-  // Webhooks, API Keys, Billing, Reports, Tickets...
-  app.get('/api/webhooks', async (c) => ok(c, await WebhookEntity.list(c.env)));
-  app.post('/api/webhooks/:id/test', async (c) => {
-    const webhook = new WebhookEntity(c.env, c.req.param('id'));
-    if (!await webhook.exists()) return notFound(c);
-    await webhook.test();
-    return ok(c, { message: 'Test event sent' });
-  });
-  app.get('/api/apikeys', async (c) => ok(c, await APIKeyEntity.list(c.env)));
-  app.post('/api/apikeys', async (c) => {
-    const key = await APIKeyEntity.generate(c.env, 'u1', ['*:*']);
-    return ok(c, key);
-  });
-  app.get('/api/billing/:orgId', async (c) => {
-    const billing = new BillingEntity(c.env, `bill-${c.req.param('orgId').slice(-1)}`);
-    if (!await billing.exists()) return notFound(c);
-    return ok(c, await billing.getState());
-  });
-  app.post('/api/billing/:orgId/upgrade', async (c) => {
-    return ok(c, { url: 'https://stripe.com/mock-checkout' });
-  });
-  app.get('/api/reports', async (c) => ok(c, await ReportEntity.list(c.env)));
   app.get('/api/tickets', async (c) => {
     const { orgId } = c.req.query();
-    if (orgId) {
-      const { items } = await TicketEntity.listByOrg(c.env, orgId as string);
-      return ok(c, { items });
-    }
+    if (orgId) return ok(c, await TicketEntity.listByOrg(c.env, orgId));
     return ok(c, await TicketEntity.list(c.env));
   });
   app.post('/api/tickets', async (c) => {
     const data = await c.req.json() as Partial<Ticket>;
     if (!data.title || !data.description || !data.orgId) return bad(c, 'Missing required fields');
-    const ticketData: Ticket = {
-        id: crypto.randomUUID(),
-        title: data.title,
-        description: data.description,
-        priority: data.priority || 'low',
-        type: data.type || 'other',
-        status: 'open',
-        orgId: data.orgId,
-        createdAt: Date.now()
-    };
+    const ticketData: Ticket = { ...TicketEntity.initialState, ...data, id: crypto.randomUUID(), createdAt: Date.now() };
     const ticket = await TicketEntity.create(c.env, ticketData);
     return ok(c, ticket);
   });
-  app.put('/api/tickets/:id/resolve', async (c) => {
-    const ticket = new TicketEntity(c.env, c.req.param('id'));
-    if (!await ticket.exists()) return notFound(c);
-    const resolved = await ticket.resolve();
-    return ok(c, resolved);
-  });
-  // Export Route
   app.get('/api/:entity/export', async (c) => {
     const { entity } = c.req.param();
-    const { limit = '1000' } = c.req.query();
-    const EntityMap = {
-      contacts: ContactEntity, deals: DealEntity, workflows: WorkflowEntity,
-      campaigns: CampaignEntity, appointments: AppointmentEntity,
+    const EntityMap: Record<string, typeof ProjectEntity> = {
+      contacts: ContactEntity, deals: DealEntity, projects: ProjectEntity,
     };
-    const EntityClass = EntityMap[entity as keyof typeof EntityMap];
+    const EntityClass = EntityMap[entity];
     if (!EntityClass) return bad(c, 'Invalid entity type for export');
-    const { items } = await EntityClass.list(c.env, null, parseInt(limit, 10));
+    const { items } = await EntityClass.list(c.env, null, 1000);
     return ok(c, items);
-  });
-  // Other routes...
-  app.get('/api/campaigns', async (c) => { await CampaignEntity.ensureSeed(c.env); return ok(c, await CampaignEntity.list(c.env)); });
-  app.get('/api/inbox', async (c) => { await ConversationEntity.ensureSeed(c.env); return ok(c, await ConversationEntity.list(c.env)); });
-  app.get('/api/calendar/events', async (c) => { await CalendarEventEntity.ensureSeed(c.env); return ok(c, await CalendarEventEntity.list(c.env)); });
-  app.get('/api/funnels', async (c) => { await FunnelEntity.ensureSeed(c.env); return ok(c, await FunnelEntity.list(c.env)); });
-  app.get('/api/pages/:id', async (c) => {
-    const page = new PageEntity(c.env, c.req.param('id'));
-    if (!await page.exists()) {
-      const mockPage = MOCK_PAGES.find(p => p.id === c.req.param('id'));
-      if (mockPage) { await PageEntity.create(c.env, mockPage); return ok(c, mockPage); }
-      return notFound(c);
-    }
-    return ok(c, await page.getState());
   });
 }

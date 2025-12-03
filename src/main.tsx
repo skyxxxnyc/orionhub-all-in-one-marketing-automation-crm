@@ -26,6 +26,7 @@ import { Calendar as CalendarPage } from '@/pages/App/Calendar';
 import { Settings } from '@/pages/App/Settings';
 import { Reporting } from '@/pages/App/Reporting';
 import { HelpCenter } from '@/pages/App/HelpCenter';
+import { ProjectManagement } from '@/pages/App/ProjectManagement';
 // Layouts & Auth
 import { useAuthStore } from '@/lib/mock-auth';
 import { AppRoutes } from '@/components/AppRoutes';
@@ -52,6 +53,7 @@ const router = createBrowserRouter([
       { path: "settings", element: <Settings /> },
       { path: "reporting", element: <Reporting /> },
       { path: "help", element: <HelpCenter /> },
+      { path: "projects", element: <ProjectManagement /> },
       { path: "funnels/:id", element: <PageEditor /> },
       { path: "pages/:id/edit", element: <PageEditor /> },
     ],

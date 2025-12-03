@@ -76,7 +76,14 @@ export interface Workflow {
   edges: WorkflowEdge[];
   createdAt: number;
   updatedAt: number;
+  description?: string;
+  category?: string;
+  complexity?: string;
+  metrics?: { runs: number; completions: number };
 }
+export interface ABVariant { id: string; nodes: WorkflowNode[]; edges: WorkflowEdge[]; traffic: number; metrics: { completions: number; runs: number } }
+export interface ExecutionLog { id: string; contactId: string; path: string[]; status: 'completed' | 'error' | 'running'; timestamp: number }
+export type WorkflowState = Workflow & { variants: ABVariant[]; executions: ExecutionLog[]; isTemplate: boolean; paused: boolean; orgId?: string };
 // Communication Types
 export interface EmailTemplate {
   id: string;
@@ -145,6 +152,12 @@ export interface Page {
     keywords?: string[];
   };
   embedCode?: string;
+  description?: string;
+  isTemplate?: boolean;
+  orgId?: string;
+  category?: string;
+  industry?: string;
+  complexity?: string;
 }
 export interface FunnelStep {
   id: string;
@@ -261,4 +274,48 @@ export interface Article {
     category: string;
     content: string;
     role: 'all' | 'admin' | 'user' | 'client';
+}
+// New types for Phase 21
+export interface Project {
+  id: string;
+  name: string;
+  type: 'funnel' | 'automation' | 'page';
+  ownerId: string;
+  status: 'draft' | 'active' | 'archived';
+  version: number;
+  collaborators: string[];
+  orgId: string;
+  workspaceId: string;
+  createdAt: number;
+  templateId?: string;
+  analytics: {
+    views: number;
+    completions: number;
+    revenue: number;
+  };
+}
+export interface Template {
+  id: string;
+  type: 'funnel' | 'automation' | 'page';
+  name: string;
+  description: string;
+  category: string;
+  industry: string;
+  complexity: 'simple' | 'medium' | 'advanced';
+  isUserGenerated: boolean;
+  public: boolean;
+  orgId: string;
+  metrics: {
+    views: number;
+    completions: number;
+    adoption: number;
+  };
+}
+export interface AIGeneration {
+  id: string;
+  prompt: string;
+  type: string;
+  output: any;
+  orgId: string;
+  timestamp: number;
 }
