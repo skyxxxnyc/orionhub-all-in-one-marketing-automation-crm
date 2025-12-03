@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact } from "@shared/types";
+import type { Contact, Pipeline, Deal } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -119,6 +119,32 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (list.length === 0) return bad(c, 'ids required');
     const deletedCount = await ContactEntity.deleteMany(c.env, list);
     return ok(c, { deletedCount, ids: list });
+  });
+  // PIPELINES
+  app.get('/api/pipelines', async (c) => {
+    await PipelineEntity.ensureSeed(c.env);
+    const page = await PipelineEntity.list(c.env);
+    return ok(c, page.items);
+  });
+  app.get('/api/pipelines/:id', async (c) => {
+    await PipelineEntity.ensureSeed(c.env);
+    await DealEntity.ensureSeed(c.env);
+    const pipelineEntity = new PipelineEntity(c.env, c.req.param('id'));
+    if (!await pipelineEntity.exists()) return notFound(c, 'pipeline not found');
+    const pipeline = await pipelineEntity.getState();
+    const allDeals = (await DealEntity.list(c.env)).items;
+    const pipelineDeals = allDeals.filter(deal => pipeline.stages.includes(deal.stage));
+    const response: Pipeline = { ...pipeline, deals: pipelineDeals };
+    return ok(c, response);
+  });
+  // DEALS
+  app.put('/api/deals/:id', async (c) => {
+    const dealEntity = new DealEntity(c.env, c.req.param('id'));
+    if (!await dealEntity.exists()) return notFound(c, 'deal not found');
+    const { stage } = (await c.req.json()) as Partial<Deal>;
+    if (!isStr(stage)) return bad(c, 'stage is required');
+    const updatedDeal = await dealEntity.updateStage(stage);
+    return ok(c, updatedDeal);
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
