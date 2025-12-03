@@ -20,7 +20,7 @@ export interface ChatMessage {
   text: string;
   ts: number; // epoch millis
 }
-// New Contact types for Phase 2
+// Contact types
 export interface ContactActivity {
   type: 'email' | 'sms' | 'note' | 'automation';
   content: string;
@@ -35,4 +35,26 @@ export interface Contact {
   customFields: Record<string, any>;
   activities: ContactActivity[];
   createdAt: number; // epoch millis
+}
+// Pipeline & Deal types
+export interface Deal {
+  id: string;
+  title: string;
+  value: number;
+  stage: string; // The name of the stage
+  contactId?: string;
+  createdAt: number;
+  updatedAt: number;
+  notes?: string;
+}
+export interface Stage {
+  id: string;
+  name: string;
+  pipelineId: string;
+}
+export interface Pipeline {
+  id: string;
+  name: string;
+  stages: string[]; // Ordered list of stage names
+  deals: Deal[]; // This is for API responses, not stored directly in PipelineEntity
 }

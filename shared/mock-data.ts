@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -87,5 +87,21 @@ export const MOCK_CONTACTS: Contact[] = [
     customFields: { reason: 'No longer at company' },
     activities: [],
     createdAt: Date.now() - 86400000 * 180,
+  },
+];
+export const MOCK_DEALS: Deal[] = [
+  { id: 'deal-1', title: 'Website Redesign', value: 5000, stage: 'New Lead', contactId: 'contact-1', createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() - 86400000 * 2 },
+  { id: 'deal-2', title: 'Marketing Campaign', value: 12000, stage: 'New Lead', contactId: 'contact-4', createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() - 86400000 * 1 },
+  { id: 'deal-3', title: 'SEO Audit', value: 2500, stage: 'Contact Made', contactId: 'contact-3', createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() - 86400000 * 5 },
+  { id: 'deal-4', title: 'App Development', value: 25000, stage: 'Proposal Sent', contactId: 'contact-2', createdAt: Date.now() - 86400000 * 20, updatedAt: Date.now() - 86400000 * 3 },
+  { id: 'deal-5', title: 'Consulting Retainer', value: 7500, stage: 'Proposal Sent', contactId: 'contact-5', createdAt: Date.now() - 86400000 * 15, updatedAt: Date.now() - 86400000 * 4 },
+  { id: 'deal-6', title: 'Social Media Management', value: 1500, stage: 'Won', contactId: 'contact-6', createdAt: Date.now() - 86400000 * 30, updatedAt: Date.now() - 86400000 * 10 },
+  { id: 'deal-7', title: 'Email Platform Migration', value: 4000, stage: 'Lost', contactId: 'contact-7', createdAt: Date.now() - 86400000 * 25, updatedAt: Date.now() - 86400000 * 12 },
+];
+export const MOCK_PIPELINES: Omit<Pipeline, 'deals'>[] = [
+  {
+    id: 'pipeline-1',
+    name: 'Sales Pipeline',
+    stages: ['New Lead', 'Contact Made', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'],
   },
 ];
