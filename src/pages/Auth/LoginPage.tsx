@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/mock-auth';
@@ -20,11 +21,11 @@ export function LoginPage() {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "agency@orionhub.io",
+      email: "demo@orionhub.io",
       password: "password",
     },
   });
-  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
       await login(values.email);
@@ -35,7 +36,7 @@ export function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [login, navigate]);
+  }
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-md space-y-8">

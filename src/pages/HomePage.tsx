@@ -1,138 +1,115 @@
-// Home page of the app.
-// Currently a demo placeholder "please wait" screen.
-// Replace this file with your actual app UI. Do not delete it to use some other file as homepage. Simply replace the entire contents of this file.
-
-import { useEffect, useMemo, useState } from 'react'
-import { Sparkles } from 'lucide-react'
-
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { HAS_TEMPLATE_DEMO, TemplateDemo } from '@/components/TemplateDemo'
-import { Button } from '@/components/ui/button'
-import { Toaster, toast } from '@/components/ui/sonner'
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ArrowRight, Zap, Users, Target } from 'lucide-react';
+import { HeroIllustration } from '@/components/HeroIllustration';
+import { Toaster } from '@/components/ui/sonner';
 export function HomePage() {
-  const [coins, setCoins] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
-  const [elapsedMs, setElapsedMs] = useState(0)
-
-  useEffect(() => {
-    if (!isRunning || startedAt === null) return
-
-    const t = setInterval(() => {
-      setElapsedMs(Date.now() - startedAt)
-    }, 250)
-
-    return () => clearInterval(t)
-  }, [isRunning, startedAt])
-
-  const formatted = useMemo(() => formatDuration(elapsedMs), [elapsedMs])
-
-  const onPleaseWait = () => {
-    setCoins((c) => c + 1)
-
-    if (!isRunning) {
-      // Resume from the current elapsed time
-      setStartedAt(Date.now() - elapsedMs)
-      setIsRunning(true)
-      toast.success('Building your app…', {
-        description: "Hang tight — we're setting everything up.",
-      })
-      return
-    }
-
-    setIsRunning(false)
-    toast.info('Still working…', {
-      description: 'You can come back in a moment.',
-    })
-  }
-
-  const onReset = () => {
-    setCoins(0)
-    setIsRunning(false)
-    setStartedAt(null)
-    setElapsedMs(0)
-    toast('Reset complete')
-  }
-
-  const onAddCoin = () => {
-    setCoins((c) => c + 1)
-    toast('Coin added')
-  }
-
+  const features = [
+    {
+      icon: <Zap className="h-8 w-8 text-orange-400" />,
+      title: 'Marketing Automation',
+      description: 'Build powerful workflows to nurture leads and engage customers automatically.',
+    },
+    {
+      icon: <Users className="h-8 w-8 text-indigo-400" />,
+      title: 'Sales CRM',
+      description: 'Manage your contacts, deals, and sales pipeline in one visual platform.',
+    },
+    {
+      icon: <Target className="h-8 w-8 text-emerald-400" />,
+      title: 'All-in-One Platform',
+      description: 'Funnels, email marketing, scheduling, and more. Everything you need to grow.',
+    },
+  ];
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-      <ThemeToggle />
-      <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-
-      <div className="text-center space-y-8 relative z-10 animate-fade-in w-full">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-            <Sparkles className="w-8 h-8 text-white rotating" />
-          </div>
+    <div className="min-h-screen w-full bg-slate-900 text-white overflow-x-hidden">
+      <ThemeToggle className="fixed top-4 right-4" />
+      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500" />
+          <span className="text-xl font-bold font-display">OrionHub</span>
+        </Link>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" asChild>
+            <Link to="/login">Log In</Link>
+          </Button>
+          <Button className="btn-gradient rounded-full" asChild>
+            <Link to="/register">Get Started Free <ArrowRight className="ml-2 h-4 w-4" /></Link>
+          </Button>
         </div>
-
-        <div className="space-y-3">
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-        </div>
-
-        {HAS_TEMPLATE_DEMO ? (
-          <div className="max-w-5xl mx-auto text-left">
-            <TemplateDemo />
+      </header>
+      <main>
+        <div className="relative isolate">
+          <div
+            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+            aria-hidden="true"
+          >
+            <div
+              className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+              style={{
+                clipPath:
+                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+              }}
+            />
           </div>
-        ) : (
-          <>
-            <div className="flex justify-center gap-4">
-              <Button
-                size="lg"
-                onClick={onPleaseWait}
-                className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-                aria-live="polite"
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-24 sm:py-32 lg:py-40 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                Please Wait
-              </Button>
+                <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
+                  The All-in-One <span className="text-gradient">Marketing & Sales</span> Platform
+                </h1>
+                <p className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto text-pretty">
+                  OrionHub gives you the tools to find customers, build relationships, and grow your business—all from a single, powerful platform.
+                </p>
+                <div className="mt-10 flex items-center justify-center gap-x-6">
+                  <Button size="lg" className="btn-gradient rounded-full px-8 py-4 text-lg font-semibold" asChild>
+                    <Link to="/register">Start Your Free Trial</Link>
+                  </Button>
+                  <Button size="lg" variant="link" className="text-white" asChild>
+                    <Link to="/app">View Demo <span aria-hidden="true">→</span></Link>
+                  </Button>
+                </div>
+              </motion.div>
             </div>
-
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div>
-                Time elapsed:{' '}
-                <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-              </div>
-              <div>
-                Coins:{' '}
-                <span className="font-medium tabular-nums text-foreground">{coins}</span>
-              </div>
+            <HeroIllustration />
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-24 sm:py-32">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.5 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex flex-col items-center p-6 rounded-2xl bg-slate-800/50 border border-slate-700"
+                >
+                  <div className="flex-shrink-0 w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center">
+                    {feature.icon}
+                  </div>
+                  <h3 className="mt-6 text-xl font-semibold">{feature.title}</h3>
+                  <p className="mt-2 text-slate-400">{feature.description}</p>
+                </motion.div>
+              ))}
             </div>
-
-            <div className="flex justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={onReset}>
-                Reset
-              </Button>
-              <Button variant="outline" size="sm" onClick={onAddCoin}>
-                Add Coin
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-
-      <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-        <p>Powered by Cloudflare</p>
+          </div>
+        </div>
+      </main>
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center text-slate-500">
+          <p>&copy; {new Date().getFullYear()} OrionHub. All rights reserved.</p>
+          <p className="mt-2 text-sm">Built with ❤️ at Cloudflare</p>
+        </div>
       </footer>
-
       <Toaster richColors closeButton />
     </div>
-  )
+  );
 }

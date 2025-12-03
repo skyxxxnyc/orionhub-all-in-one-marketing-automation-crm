@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +30,7 @@ export function RegisterPage() {
       organization: "",
     },
   });
-  const onSubmit = useCallback(async (values: z.infer<typeof registerSchema>) => {
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
     setIsLoading(true);
     try {
       await register(values.name, values.email);
@@ -41,7 +41,7 @@ export function RegisterPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [register]);
+  }
   return (
     <>
       <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 p-4">
