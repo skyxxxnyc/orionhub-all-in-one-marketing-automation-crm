@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity, ProjectEntity, TemplateEntity, ChatSessionEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket, CalendarEvent, WorkflowState, Project, Template, ChatSession } from "@shared/types";
 import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES, MOCK_PAGE_TEMPLATES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
@@ -13,7 +13,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
       BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
       TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env), PageEntity.ensureSeed(c.env),
-      ProjectEntity.ensureSeed(c.env), TemplateEntity.ensureSeed(c.env),
+      ProjectEntity.ensureSeed(c.env), TemplateEntity.ensureSeed(c.env), ChatSessionEntity.ensureSeed(c.env),
     ]);
     await next();
   });
@@ -78,6 +78,39 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const mockResponse = { choices: [{ message: { content: `Mock research for "${prompt}"` } }] };
     return ok(c, mockResponse);
   });
+  // --- Chatbot Routes ---
+  app.get('/api/chat/:contactId/sessions', async (c) => {
+    const { contactId } = c.req.param();
+    const all = await ChatSessionEntity.list(c.env);
+    const items = all.items.filter(s => s.contactId === contactId);
+    return ok(c, { items });
+  });
+  app.post('/api/chat/sessions/:id/message', async (c) => {
+    const session = new ChatSessionEntity(c.env, c.req.param('id'));
+    if (!await session.exists()) return notFound(c);
+    const { text } = await c.req.json();
+    const userMessage: Message = { id: crypto.randomUUID(), from: 'user', text, direction: 'out', timestamp: Date.now() };
+    const aiResponse: Message = { id: crypto.randomUUID(), from: 'AI Assistant', text: `This is a mock AI response to: "${text}"`, direction: 'in', timestamp: Date.now() + 1000 };
+    await session.mutate(s => ({ ...s, messages: [...s.messages, userMessage, aiResponse] }));
+    return ok(c, await session.getState());
+  });
+  app.post('/api/chat/sessions/:id/escalate', async (c) => {
+    const session = new ChatSessionEntity(c.env, c.req.param('id'));
+    if (!await session.exists()) return notFound(c);
+    const { orgId } = await c.req.json();
+    const sessionState = await session.getState();
+    const ticketData: Ticket = {
+      ...TicketEntity.initialState,
+      id: crypto.randomUUID(),
+      title: `Chat Escalation: ${sessionState.contactId}`,
+      description: sessionState.messages.map(m => `${m.from}: ${m.text}`).join('\n'),
+      orgId,
+      createdAt: Date.now(),
+    };
+    const ticket = await TicketEntity.create(c.env, ticketData);
+    await session.patch({ escalatedToTicket: ticket.id });
+    return ok(c, ticket);
+  });
   // --- Existing Routes ---
   app.get('/api/users', async (c) => ok(c, await UserEntity.list(c.env)));
   app.get('/api/chats', async (c) => ok(c, await ChatBoardEntity.list(c.env)));
@@ -134,11 +167,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   app.get('/api/:entity/export', async (c) => {
     const { entity } = c.req.param();
-    const EntityMap: Record<string, typeof ProjectEntity> = {
-      contacts: ContactEntity, deals: DealEntity, projects: ProjectEntity,
-    };
-    const EntityClass = EntityMap[entity];
-    if (!EntityClass) return bad(c, 'Invalid entity type for export');
+    let EntityClass;
+    switch (entity) {
+      case 'contacts': EntityClass = ContactEntity; break;
+      case 'deals': EntityClass = DealEntity; break;
+      case 'projects': EntityClass = ProjectEntity; break;
+      default: return bad(c, 'Invalid entity type for export');
+    }
     const { items } = await EntityClass.list(c.env, null, 1000);
     return ok(c, items);
   });

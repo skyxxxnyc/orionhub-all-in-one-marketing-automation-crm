@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Ticket, Article, WorkflowState, Project, Template } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Ticket, Article, WorkflowState, Project, Template, ChatSession } from './types';
 // --- Base Mock Data ---
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A', email: 'agency@orionhub.io' },
@@ -123,6 +123,8 @@ export const MOCK_CALENDAR_EVENTS: CalendarEvent[] = MOCK_APPOINTMENTS.filter(a 
 }));
 export const MOCK_INTEGRATIONS: Integration[] = [
   { id: 'int-1', type: 'google', status: 'connected', syncToken: 'sync-token-123' },
+  { id: 'int-2', type: 'gmail', status: 'connected', gmailKey: 'mock-gmail-key' },
+  { id: 'int-3', type: 'perplexity', status: 'disconnected' },
 ];
 export const MOCK_ORGANIZATIONS: Organization[] = [
   { id: 'org-1', name: 'Orion Digital Agency', type: 'agency', branding: { logo: '/logo-orion.png', colors: { primary: '#F38020' } }, workspaces: ['ws-1', 'ws-2', 'ws-3'], ownerId: 'u1', createdAt: Date.now() - 86400000 * 30 },
@@ -165,3 +167,8 @@ export const MOCK_ANALYTICS = {
         revenue: 45231 + i * 2000 + Math.floor(Math.random() * 5000),
     }))
 };
+export const MOCK_CHAT_SESSIONS: ChatSession[] = [
+  { id: 'cs-1', contactId: 'contact-1', messages: [{ id: 'm-cs-1', from: 'Contact 1', text: 'Hello, I need help.', direction: 'in', timestamp: Date.now() - 10000 }] },
+  { id: 'cs-2', contactId: 'contact-2', messages: [], escalatedToTicket: 't1' },
+  { id: 'cs-3', contactId: 'contact-3', messages: [] },
+];

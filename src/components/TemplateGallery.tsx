@@ -49,6 +49,10 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
     }
     onSelect(template);
   };
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: Template) => {
+    event.dataTransfer.setData('application/reactflow-template', JSON.stringify(template));
+    event.dataTransfer.effectAllowed = 'move';
+  };
   return (
     <div className="py-4 space-y-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -87,6 +91,8 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
               transition={{ duration: 0.2 }}
               className="cursor-pointer"
               onClick={() => handleSelect(template)}
+              draggable
+              onDragStart={(e) => onDragStart(e, template)}
             >
               <Card className="h-full overflow-hidden">
                 <CardHeader>

@@ -83,7 +83,7 @@ export interface Workflow {
 }
 export interface ABVariant { id: string; nodes: WorkflowNode[]; edges: WorkflowEdge[]; traffic: number; metrics: { completions: number; runs: number } }
 export interface ExecutionLog { id: string; contactId: string; path: string[]; status: 'completed' | 'error' | 'running'; timestamp: number }
-export type WorkflowState = Workflow & { variants: ABVariant[]; executions: ExecutionLog[]; isTemplate: boolean; paused: boolean; orgId?: string };
+export type WorkflowState = Workflow & { variants: ABVariant[]; executions: ExecutionLog[]; isTemplate: boolean; paused: boolean; orgId?: string; industry?: string; };
 // Communication Types
 export interface EmailTemplate {
   id: string;
@@ -198,9 +198,12 @@ export interface CalendarEvent {
 }
 export interface Integration {
   id: string;
-  type: 'google' | 'outlook';
+  type: 'google' | 'outlook' | 'gmail' | 'perplexity';
   status: 'connected' | 'disconnected';
   syncToken?: string;
+  gmailKey?: string;
+  calendarSyncToken?: string;
+  perplexityKey?: string;
 }
 // Multi-Tenant & Admin Types
 export interface Organization {
@@ -318,4 +321,11 @@ export interface AIGeneration {
   output: any;
   orgId: string;
   timestamp: number;
+}
+// New types for Phase 22
+export interface ChatSession {
+  id: string;
+  contactId: string;
+  messages: Message[];
+  escalatedToTicket?: string;
 }

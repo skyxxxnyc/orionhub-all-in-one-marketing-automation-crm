@@ -1,7 +1,7 @@
 import { IndexedEntity } from "./core-utils";
 import type { Env } from './core-utils';
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article, WorkflowState, Project, Template } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES, MOCK_WORKFLOW_TEMPLATES, MOCK_PROJECTS, MOCK_TEMPLATE_GALLERY } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article, WorkflowState, Project, Template, ChatSession } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES, MOCK_WORKFLOW_TEMPLATES, MOCK_PROJECTS, MOCK_TEMPLATE_GALLERY, MOCK_CHAT_SESSIONS } from "@shared/mock-data";
 // USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user"; static readonly indexName = "users";
@@ -38,14 +38,14 @@ export class DealEntity extends IndexedEntity<Deal> {
 // WORKFLOW ENTITY
 export class WorkflowEntity extends IndexedEntity<WorkflowState> {
   static readonly entityName = "workflow"; static readonly indexName = "workflows";
-  static readonly initialState: WorkflowState = { id: "", name: "", nodes: [], edges: [], createdAt: 0, updatedAt: 0, variants: [], executions: [], isTemplate: false, paused: false, orgId: '' };
+  static readonly initialState: WorkflowState = { id: "", name: "", nodes: [], edges: [], createdAt: 0, updatedAt: 0, variants: [], executions: [], isTemplate: false, paused: false, orgId: '', industry: '' };
   static seedData = [...MOCK_WORKFLOWS.map(w => ({ ...w, variants: [], executions: [], isTemplate: false, paused: false, orgId: 'org-1' })), ...MOCK_WORKFLOW_TEMPLATES];
   async update(nodes: WorkflowNode[], edges: WorkflowEdge[]): Promise<WorkflowState> { return this.mutate(s => ({ ...s, nodes, edges, updatedAt: Date.now() })); }
 }
 // PAGE ENTITY
 export class PageEntity extends IndexedEntity<Page> {
   static readonly entityName = "page"; static readonly indexName = "pages";
-  static readonly initialState: Page = { id: "", name: "", content: [], analytics: { views: 0, conversions: 0 }, createdAt: 0, description: '', isTemplate: false, orgId: '' }; static seedData = MOCK_PAGES;
+  static readonly initialState: Page = { id: "", name: "", content: [], analytics: { views: 0, conversions: 0 }, createdAt: 0, description: '', isTemplate: false, orgId: '', industry: '' }; static seedData = MOCK_PAGES;
 }
 // PROJECT ENTITY
 export class ProjectEntity extends IndexedEntity<Project> {
@@ -59,6 +59,12 @@ export class TemplateEntity extends IndexedEntity<Template> {
   static readonly initialState: Template = { id: "", type: "funnel", name: "", description: "", category: "", industry: "", complexity: "simple", isUserGenerated: false, public: false, orgId: "", metrics: { views: 0, completions: 0, adoption: 0 } };
   static seedData = MOCK_TEMPLATE_GALLERY;
   async share(isPublic: boolean) { return this.patch({ public: isPublic }); }
+}
+// CHAT SESSION ENTITY
+export class ChatSessionEntity extends IndexedEntity<ChatSession> {
+  static readonly entityName = "chatSession"; static readonly indexName = "chatSessions";
+  static readonly initialState: ChatSession = { id: "", contactId: "", messages: [] };
+  static seedData = MOCK_CHAT_SESSIONS;
 }
 // OTHER ENTITIES
 export class EmailTemplateEntity extends IndexedEntity<EmailTemplate> {
