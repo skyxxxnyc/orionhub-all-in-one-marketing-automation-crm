@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 export function BrandingSettings() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const [logo, setLogo] = useState(currentOrg?.branding.logo || '');
@@ -30,7 +31,12 @@ export function BrandingSettings() {
           <h4 className="font-semibold mb-2">Preview</h4>
           <div className="flex items-center gap-4">
             {logo && <img src={logo} alt="Logo Preview" className="h-10" />}
-            <Button style={{ backgroundColor: primaryColor }}>Example Button</Button>
+            <motion.div
+              animate={{ backgroundColor: primaryColor }}
+              transition={{ duration: 0.3 }}
+            >
+              <Button style={{ backgroundColor: primaryColor, color: 'white' }}>Example Button</Button>
+            </motion.div>
           </div>
         </div>
         <Button>Save Branding</Button>

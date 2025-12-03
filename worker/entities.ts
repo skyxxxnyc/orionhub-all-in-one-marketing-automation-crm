@@ -100,6 +100,7 @@ export class OrganizationEntity extends IndexedEntity<Organization> {
   static readonly entityName = "organization"; static readonly indexName = "organizations";
   static readonly initialState: Organization = { id: "", name: "", type: "client", branding: {}, workspaces: [], ownerId: "", createdAt: 0 }; static seedData = MOCK_ORGANIZATIONS;
   static async exists(env: Env, id: string): Promise<boolean> { return (await new this(env, id).exists()); }
+  async updateBranding(branding: Organization['branding']) { return this.patch({ branding }); }
 }
 export class WorkspaceEntity extends IndexedEntity<Workspace> {
   static readonly entityName = "workspace"; static readonly indexName = "workspaces";

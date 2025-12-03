@@ -1,11 +1,36 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntegrationSettings } from "@/components/IntegrationSettings";
 import { TeamManagement } from "@/components/TeamManagement";
-import { BillingPanel } from "@/components/BillingPanel";
+import { StripeBilling } from "@/components/StripeBilling";
 import { BrandingSettings } from "@/components/BrandingSettings";
 import { WebhookManager } from "@/components/WebhookManager";
 import { APIKeyManager } from "@/components/APIKeyManager";
 import { useAuthStore } from "@/lib/mock-auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+function AccountSettings() {
+  const user = useAuthStore(s => s.user);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Account Information</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Full Name</Label>
+          <Input id="name" defaultValue={user?.name} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input id="email" type="email" defaultValue={user?.email} />
+        </div>
+        <Button>Update Profile</Button>
+      </CardContent>
+    </Card>
+  );
+}
 export function Settings() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const isAgency = currentOrg?.type === 'agency';
@@ -27,13 +52,13 @@ export function Settings() {
             {isAgency && <TabsTrigger value="branding">Branding</TabsTrigger>}
           </TabsList>
           <TabsContent value="account" className="mt-6">
-            <p>Account Settings</p>
+            <AccountSettings />
           </TabsContent>
           <TabsContent value="team" className="mt-6">
             <TeamManagement />
           </TabsContent>
           <TabsContent value="billing" className="mt-6">
-            <BillingPanel />
+            <StripeBilling />
           </TabsContent>
           <TabsContent value="integrations" className="mt-6">
             <IntegrationSettings />

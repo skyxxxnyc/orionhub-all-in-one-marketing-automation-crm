@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { User, Organization, Workspace } from '@shared/types';
-import { MOCK_ORGANIZATIONS, MOCK_WORKSPACES } from '@shared/mock-data';
+import { MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_USERS } from '@shared/mock-data';
 const MOCK_USER_KEY = 'orionhub_mock_user';
 const MOCK_TOKEN_KEY = 'orionhub_mock_token';
 const MOCK_ORG_KEY = 'orionhub_mock_org';
@@ -14,6 +14,8 @@ interface AuthState {
   currentWorkspace: Workspace | null;
   organizations: Organization[];
   workspaces: Workspace[];
+  role: 'admin' | 'user' | 'client';
+  permissions: string[];
   login: (email: string) => Promise<User>;
   register: (name: string, email: string) => Promise<User>;
   logout: () => void;
@@ -41,15 +43,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   organizations: [],
   workspaces: [],
+  role: 'user',
+  permissions: [],
   login: async (email: string) => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const user: User = { id: 'u1', name: 'Demo User', email };
+        const user = MOCK_USERS.find(u => u.email === email) || { id: 'u1', name: 'Demo User', email };
         const token = `mock-token-${Date.now()}`;
         const userOrgs = MOCK_ORGANIZATIONS.filter(o => o.ownerId === user.id);
         const currentOrg = userOrgs[0] || null;
         const userWorkspaces = MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg?.id);
         const currentWorkspace = userWorkspaces[0] || null;
+        const role = currentOrg?.type === 'agency' ? 'admin' : 'user';
         localStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
         localStorage.setItem(MOCK_TOKEN_KEY, token);
         if (currentOrg) localStorage.setItem(MOCK_ORG_KEY, JSON.stringify(currentOrg));
@@ -60,6 +65,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           workspaces: userWorkspaces,
           currentOrg,
           currentWorkspace,
+          role,
+          permissions: role === 'admin' ? ['*:*'] : ['contacts:read'],
         });
         resolve(user);
       }, 500);
@@ -82,6 +89,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           workspaces: [newWs],
           currentOrg: newOrg,
           currentWorkspace: newWs,
+          role: 'admin',
+          permissions: ['*:*'],
         });
         resolve(user);
       }, 500);
@@ -92,17 +101,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem(MOCK_TOKEN_KEY);
     localStorage.removeItem(MOCK_ORG_KEY);
     localStorage.removeItem(MOCK_WS_KEY);
-    set({ user: null, token: null, isAuthenticated: false, currentOrg: null, currentWorkspace: null, organizations: [], workspaces: [], isLoading: false });
+    set({ user: null, token: null, isAuthenticated: false, currentOrg: null, currentWorkspace: null, organizations: [], workspaces: [], isLoading: false, role: 'user', permissions: [] });
   },
   checkAuth: () => {
     const { token, user, currentOrg, currentWorkspace } = getInitialStateFromLocalStorage();
     const userOrgs = user ? MOCK_ORGANIZATIONS.filter(o => o.ownerId === user.id || o.workspaces.some(wsId => MOCK_WORKSPACES.find(ws => ws.id === wsId)?.users.includes(user.id))) : [];
     const userWorkspaces = currentOrg ? MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg.id) : [];
+    const role = currentOrg?.type === 'agency' ? 'admin' : 'user';
     set({
       token, user, isAuthenticated: !!token && !!user, isLoading: false,
       currentOrg, currentWorkspace,
       organizations: userOrgs,
       workspaces: userWorkspaces,
+      role,
+      permissions: role === 'admin' ? ['*:*'] : ['contacts:read'],
     });
   },
   switchOrganization: (orgId: string) => {
@@ -118,6 +130,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem(MOCK_WS_KEY);
       }
       set({ currentOrg: newOrg, workspaces: newWorkspaces, currentWorkspace: newCurrentWorkspace });
+      // In a real app with react-query, you'd invalidate queries here.
     }
   },
   switchWorkspace: (workspaceId: string) => {
@@ -126,6 +139,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (newWorkspace) {
       localStorage.setItem(MOCK_WS_KEY, JSON.stringify(newWorkspace));
       set({ currentWorkspace: newWorkspace });
+      // In a real app with react-query, you'd invalidate queries here.
     }
   },
 }));

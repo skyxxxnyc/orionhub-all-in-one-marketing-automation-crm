@@ -3,7 +3,7 @@ import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey } from "@shared/types";
-import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING } from "@shared/mock-data";
+import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
   app.use('/api/*', async (c, next) => {
@@ -11,12 +11,23 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       UserEntity.ensureSeed(c.env), ChatBoardEntity.ensureSeed(c.env), ContactEntity.ensureSeed(c.env),
       PipelineEntity.ensureSeed(c.env), DealEntity.ensureSeed(c.env), WorkflowEntity.ensureSeed(c.env),
       WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
-      BillingEntity.ensureSeed(c.env)
+      BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env)
     ]);
     await next();
   });
-  // Existing routes...
-  app.get('/api/users', async (c) => ok(c, await UserEntity.list(c.env)));
+  // User routes with workspace filtering
+  app.get('/api/users', async (c) => {
+    const { workspaceId } = c.req.query();
+    const allUsers = (await UserEntity.list(c.env)).items;
+    if (workspaceId) {
+      const workspace = MOCK_WORKSPACES.find(ws => ws.id === workspaceId);
+      if (workspace) {
+        const workspaceUsers = allUsers.filter(u => workspace.users.includes(u.id));
+        return ok(c, { items: workspaceUsers });
+      }
+    }
+    return ok(c, { items: allUsers });
+  });
   app.get('/api/chats', async (c) => ok(c, await ChatBoardEntity.list(c.env)));
   app.get('/api/contacts', async (c) => ok(c, await ContactEntity.list(c.env)));
   app.get('/api/pipelines/:id', async (c) => {
@@ -58,7 +69,14 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!nodes || !edges) return bad(c, 'nodes and edges are required');
     return ok(c, await workflow.update(nodes, edges));
   });
-  // --- NEW ROUTES FOR PHASE 13 ---
+  // Multi-tenant routes
+  app.put('/api/organizations/:id/branding', async (c) => {
+    const org = new OrganizationEntity(c.env, c.req.param('id'));
+    if (!await org.exists()) return notFound(c);
+    const branding = await c.req.json();
+    await org.updateBranding(branding);
+    return ok(c, await org.getState());
+  });
   // Webhooks
   app.get('/api/webhooks', async (c) => ok(c, await WebhookEntity.list(c.env)));
   app.post('/api/webhooks/:id/test', async (c) => {
