@@ -31,8 +31,9 @@ const toolboxItems = {
 };
 export function WorkflowToolbox() {
   const currentOrg = useAuthStore(s => s.currentOrg);
-  const onDragStart = (event: React.DragEvent, nodeType: string, nodeData: any) => {
-    const data = JSON.stringify({ type: 'custom', data: { ...nodeData, orgId: currentOrg?.id } });
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, item: any) => {
+    const nodeData = { ...item, orgId: currentOrg?.id };
+    const data = JSON.stringify({ type: 'custom', data: nodeData });
     event.dataTransfer.setData('application/reactflow', data);
     event.dataTransfer.effectAllowed = 'move';
   };
@@ -55,7 +56,7 @@ export function WorkflowToolbox() {
                             whileHover={{ scale: 1.05 }}
                             className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted transition-colors"
                             draggable
-                            onDragStart={(event: React.DragEvent<HTMLDivElement>) => onDragStart(event, 'custom', item)}
+                            onDragStart={(event) => onDragStart(event, item)}
                           >
                             <Icon className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">{item.label}</span>

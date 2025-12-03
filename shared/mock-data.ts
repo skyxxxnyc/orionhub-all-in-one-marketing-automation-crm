@@ -46,7 +46,7 @@ const generateMockDeals = (count: number, stages: string[], contactIds: string[]
   }
   return deals;
 };
-export const MOCK_CONTACTS: Contact[] = generateMockContacts(120);
+export const MOCK_CONTACTS: Contact[] = generateMockContacts(150);
 export const MOCK_PIPELINES: Omit<Pipeline, 'deals'>[] = [
   {
     id: 'pipeline-1',
@@ -54,7 +54,7 @@ export const MOCK_PIPELINES: Omit<Pipeline, 'deals'>[] = [
     stages: ['New Lead', 'Contact Made', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'],
   },
 ];
-export const MOCK_DEALS: Deal[] = generateMockDeals(60, MOCK_PIPELINES[0].stages, MOCK_CONTACTS.map(c => c.id));
+export const MOCK_DEALS: Deal[] = generateMockDeals(100, MOCK_PIPELINES[0].stages, MOCK_CONTACTS.map(c => c.id));
 export const MOCK_WORKFLOWS: Workflow[] = [
   {
     id: 'wf-1',
@@ -180,6 +180,13 @@ export const MOCK_INVOICES = [
     { id: 'inv-1', date: Date.now() - 86400000 * 30, amount: 99, status: 'paid' },
     { id: 'inv-2', date: Date.now() - 86400000 * 60, amount: 99, status: 'paid' },
     { id: 'inv-3', date: Date.now() - 86400000 * 90, amount: 99, status: 'paid' },
+    { id: 'inv-4', date: Date.now() - 86400000 * 120, amount: 99, status: 'paid' },
+    { id: 'inv-5', date: Date.now() - 86400000 * 150, amount: 99, status: 'paid' },
+    { id: 'inv-6', date: Date.now() - 86400000 * 180, amount: 99, status: 'paid' },
+    { id: 'inv-7', date: Date.now() - 86400000 * 210, amount: 99, status: 'paid' },
+    { id: 'inv-8', date: Date.now() - 86400000 * 240, amount: 99, status: 'paid' },
+    { id: 'inv-9', date: Date.now() - 86400000 * 270, amount: 99, status: 'paid' },
+    { id: 'inv-10', date: Date.now() - 86400000 * 300, amount: 99, status: 'paid' },
 ];
 export const MOCK_ANALYTICS = {
     monthly: Array.from({ length: 12 }).map((_, i) => ({
