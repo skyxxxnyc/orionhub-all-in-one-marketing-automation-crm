@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,9 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/mock-auth';
-import type { Ticket, Article } from '@shared/types';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandItem } from './ui/command';
+import type { Ticket } from '@shared/types';
 const ticketSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   description: z.string().min(10, "Please provide a detailed description."),
@@ -26,10 +24,7 @@ const ticketSchema = z.object({
   type: z.enum(['bug', 'feature', 'other']),
 });
 const fetchTickets = async (orgId: string) => api<{ items: Ticket[] }>('/api/tickets', { query: { orgId } });
-interface SupportTicketSystemProps {
-  articles?: Article[];
-}
-export function SupportTicketSystem({ articles }: SupportTicketSystemProps) {
+export function SupportTicketSystem() {
   const queryClient = useQueryClient();
   const currentOrg = useAuthStore(s => s.currentOrg);
   const [isDialogOpen, setDialogOpen] = React.useState(false);
@@ -42,11 +37,6 @@ export function SupportTicketSystem({ articles }: SupportTicketSystemProps) {
     resolver: zodResolver(ticketSchema),
     defaultValues: { priority: 'low', type: 'bug' },
   });
-  const descriptionValue = form.watch('description');
-  const suggestedArticles = useMemo(() => {
-    if (!descriptionValue || !articles) return [];
-    return articles.filter(article => article.content.toLowerCase().includes(descriptionValue.toLowerCase()) || article.title.toLowerCase().includes(descriptionValue.toLowerCase())).slice(0, 3);
-  }, [descriptionValue, articles]);
   const createTicketMutation = useMutation({
     mutationFn: (newTicket: Omit<Ticket, 'id' | 'status' | 'createdAt' | 'orgId'>) =>
       api('/api/tickets', {
@@ -86,27 +76,7 @@ export function SupportTicketSystem({ articles }: SupportTicketSystemProps) {
                     <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="description" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <Popover open={suggestedArticles.length > 0 && descriptionValue.length > 10}>
-                        <PopoverTrigger asChild>
-                          <FormControl><Textarea {...field} rows={5} /></FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <Command>
-                            <CommandEmpty>No suggestions found.</CommandEmpty>
-                            <CommandGroup heading="Suggested Articles">
-                              {suggestedArticles.map(article => (
-                                <CommandItem key={article.id} onSelect={() => window.open('/app/help', '_blank')}>
-                                  {article.title}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="priority" render={({ field }) => (

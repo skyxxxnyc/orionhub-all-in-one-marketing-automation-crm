@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import type { Contact } from '@shared/types';
+import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 const fetchContacts = async ({ pageParam = null, search = '' }: { pageParam?: string | null, search?: string }) => {
   return api<{ items: Contact[]; next: string | null }>('/api/contacts', {
     query: { cursor: pageParam, limit: 20, search },
@@ -121,17 +122,23 @@ export function Contacts() {
         </div>
         <div className="mb-4 flex items-center justify-between gap-2">
           <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search contacts..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <OnboardingTooltip tourId="search-contacts" content="Search by name, email, or tags.">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search contacts..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              </div>
+            </OnboardingTooltip>
           </div>
           {selected.length > 0 && (
-            <div className="flex items-center gap-2 animate-fade-in">
-              <span className="text-sm text-muted-foreground">{selected.length} selected</span>
-              <Button variant="outline" size="sm"><Tag className="mr-1 h-4 w-4" />Add Tag</Button>
-              <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(selected)} disabled={deleteMutation.isPending}>
-                <Trash2 className="mr-1 h-4 w-4" />Delete
-              </Button>
-            </div>
+            <OnboardingTooltip tourId="bulk-actions" content="Perform actions on multiple contacts at once.">
+              <div className="flex items-center gap-2 animate-fade-in">
+                <span className="text-sm text-muted-foreground">{selected.length} selected</span>
+                <Button variant="outline" size="sm"><Tag className="mr-1 h-4 w-4" />Add Tag</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(selected)} disabled={deleteMutation.isPending}>
+                  <Trash2 className="mr-1 h-4 w-4" />Delete
+                </Button>
+              </div>
+            </OnboardingTooltip>
           )}
         </div>
         <div className="border rounded-lg">

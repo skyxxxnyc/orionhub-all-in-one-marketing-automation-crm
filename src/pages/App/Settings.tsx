@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IntegrationSettings } from "@/components/IntegrationSettings";
 import { TeamManagement } from "@/components/TeamManagement";
@@ -5,6 +6,7 @@ import { StripeBilling } from "@/components/StripeBilling";
 import { BrandingSettings } from "@/components/BrandingSettings";
 import { WebhookManager } from "@/components/WebhookManager";
 import { APIKeyManager } from "@/components/APIKeyManager";
+import { SupportTicketSystem } from "@/components/SupportTicketSystem";
 import { useAuthStore } from "@/lib/mock-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +44,7 @@ export function Settings() {
           <p className="text-muted-foreground">Manage your account, team, and integrations.</p>
         </div>
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8">
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -50,6 +52,7 @@ export function Settings() {
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="api">API</TabsTrigger>
             {isAgency && <TabsTrigger value="branding">Branding</TabsTrigger>}
+            <TabsTrigger value="help">Help & Support</TabsTrigger>
           </TabsList>
           <TabsContent value="account" className="mt-6">
             <AccountSettings />
@@ -74,6 +77,14 @@ export function Settings() {
               <BrandingSettings />
             </TabsContent>
           )}
+          <TabsContent value="help" className="mt-6">
+            <SupportTicketSystem />
+            <div className="mt-4">
+              <Button variant="link" asChild>
+                <Link to="/app/help">View Full Help Center</Link>
+              </Button>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

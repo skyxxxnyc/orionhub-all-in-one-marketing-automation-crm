@@ -23,6 +23,7 @@ import { WorkflowTemplates } from '@/components/WorkflowTemplates';
 import { WorkflowAnalytics } from '@/components/WorkflowAnalytics';
 import { WorkflowTestingPanel } from '@/components/WorkflowTestingPanel';
 import { WorkflowJourneyViewer } from '@/components/WorkflowJourneyViewer';
+import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 const fetchWorkflows = async () => api<{ items: Workflow[] }>('/api/workflows');
 const nodeTypes: NodeTypes = { custom: CustomNode };
 export function Automations() {
@@ -131,15 +132,17 @@ export function Automations() {
             <h1 className="text-3xl font-bold">Automations</h1>
             <p className="text-muted-foreground">Create and manage your marketing workflows.</p>
           </div>
-          <Sheet open={isTemplateSheetOpen} onOpenChange={setTemplateSheetOpen}>
-            <SheetTrigger asChild>
-              <Button><PlusCircle className="mr-2 h-4 w-4" /> New Workflow</Button>
-            </SheetTrigger>
-            <SheetContent className="sm:max-w-4xl">
-              <SheetHeader><SheetTitle>New Workflow</SheetTitle></SheetHeader>
-              <WorkflowTemplates onSelect={handleTemplateSelect} />
-            </SheetContent>
-          </Sheet>
+          <OnboardingTooltip tourId="new-workflow" content="Start building your first automation from a template.">
+            <Sheet open={isTemplateSheetOpen} onOpenChange={setTemplateSheetOpen}>
+              <SheetTrigger asChild>
+                <Button><PlusCircle className="mr-2 h-4 w-4" /> New Workflow</Button>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-4xl">
+                <SheetHeader><SheetTitle>New Workflow</SheetTitle></SheetHeader>
+                <WorkflowTemplates onSelect={handleTemplateSelect} />
+              </SheetContent>
+            </Sheet>
+          </OnboardingTooltip>
         </div>
         <Card>
           <CardContent>

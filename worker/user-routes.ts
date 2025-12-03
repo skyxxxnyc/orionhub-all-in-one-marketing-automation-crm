@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity, WebhookEntity, APIKeyEntity, ReportEntity, TicketEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing, APIKey, Ticket } from "@shared/types";
 import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES, MOCK_BILLING, MOCK_WORKSPACES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // Seed all data on first request to any user route
@@ -11,7 +11,8 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       UserEntity.ensureSeed(c.env), ChatBoardEntity.ensureSeed(c.env), ContactEntity.ensureSeed(c.env),
       PipelineEntity.ensureSeed(c.env), DealEntity.ensureSeed(c.env), WorkflowEntity.ensureSeed(c.env),
       WebhookEntity.ensureSeed(c.env), APIKeyEntity.ensureSeed(c.env), ReportEntity.ensureSeed(c.env),
-      BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env)
+      BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
+      TicketEntity.ensureSeed(c.env)
     ]);
     await next();
   });
@@ -103,6 +104,40 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   // Reports
   app.get('/api/reports', async (c) => ok(c, await ReportEntity.list(c.env)));
+  // Ticket Routes
+  app.get('/api/tickets', async (c) => {
+    const { orgId } = c.req.query();
+    if (orgId) {
+      const { items } = await TicketEntity.listByOrg(c.env, orgId as string);
+      return ok(c, { items });
+    }
+    return ok(c, await TicketEntity.list(c.env));
+  });
+  app.post('/api/tickets', async (c) => {
+    const data = await c.req.json() as Partial<Ticket>;
+    if (!data.title || !data.description || !data.orgId) return bad(c, 'Missing required fields');
+    // Mock RBAC check
+    // const user = await UserEntity.get(c.env, 'u1');
+    // if(!user.permissions.includes('tickets:write')) return bad(c, 'Insufficient permissions');
+    const ticketData: Ticket = {
+        id: crypto.randomUUID(),
+        title: data.title,
+        description: data.description,
+        priority: data.priority || 'low',
+        type: data.type || 'other',
+        status: 'open',
+        orgId: data.orgId,
+        createdAt: Date.now()
+    };
+    const ticket = await TicketEntity.create(c.env, ticketData);
+    return ok(c, ticket);
+  });
+  app.put('/api/tickets/:id/resolve', async (c) => {
+    const ticket = new TicketEntity(c.env, c.req.param('id'));
+    if (!await ticket.exists()) return notFound(c);
+    const resolved = await ticket.resolve();
+    return ok(c, resolved);
+  });
   // Other routes...
   app.get('/api/campaigns', async (c) => { await CampaignEntity.ensureSeed(c.env); return ok(c, await CampaignEntity.list(c.env)); });
   app.get('/api/inbox', async (c) => { await ConversationEntity.ensureSeed(c.env); return ok(c, await ConversationEntity.list(c.env)); });

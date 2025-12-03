@@ -1,7 +1,7 @@
 import { IndexedEntity } from "./core-utils";
 import type { Env } from './core-utils';
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES } from "@shared/mock-data";
 // USER ENTITY
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user"; static readonly indexName = "users";
@@ -114,7 +114,6 @@ export class RoleEntity extends IndexedEntity<Role> {
   static readonly entityName = "role"; static readonly indexName = "roles";
   static readonly initialState: Role = { id: "", name: "user", permissions: [] }; static seedData = MOCK_ROLES;
 }
-// --- NEW ENTITIES FOR PHASE 13 ---
 export class WebhookEntity extends IndexedEntity<Webhook> {
   static readonly entityName = "webhook"; static readonly indexName = "webhooks";
   static readonly initialState: Webhook = { id: "", url: "", events: [], active: false };
@@ -136,4 +135,18 @@ export class ReportEntity extends IndexedEntity<{ id: string; orgId: string; met
     static readonly entityName = "report"; static readonly indexName = "reports";
     static readonly initialState = { id: "", orgId: "", metrics: {} };
     static seedData = MOCK_REPORTS;
+}
+export class TicketEntity extends IndexedEntity<Ticket> {
+  static readonly entityName = "ticket";
+  static readonly indexName = "tickets";
+  static readonly initialState: Ticket = { id: "", title: "", description: "", priority: "low", type: "other", status: "open", orgId: "", createdAt: 0 };
+  static seedData = MOCK_TICKETS;
+  async resolve(): Promise<Ticket> {
+    return this.patch({ status: "resolved", resolvedAt: Date.now() });
+  }
+  static async listByOrg(env: Env, orgId: string): Promise<{ items: Ticket[]; next: string | null }> {
+    const all = await this.list(env);
+    const items = all.items.filter(t => t.orgId === orgId);
+    return { items, next: null }; // Simplified for mock
+  }
 }

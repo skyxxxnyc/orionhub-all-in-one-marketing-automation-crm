@@ -24,6 +24,7 @@ const navItems = [
   { href: "/app/automations", icon: Workflow, label: "Automations" },
   { href: "/app/funnels", icon: FileText, label: "Funnels & Pages" },
   { href: "/app/reporting", icon: AreaChart, label: "Reporting" },
+  { href: "/app/help", icon: LifeBuoy, label: "Help & Support" },
 ];
 export function AppSidebar(): JSX.Element {
   const location = useLocation();
@@ -57,11 +58,6 @@ export function AppSidebar(): JSX.Element {
       </SidebarContent>
       <SidebarFooter className="mt-auto">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink to="/app/support"><LifeBuoy className="h-5 w-5" /> <span>Support</span></NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <NavLink to="/app/settings"><Settings className="h-5 w-5" /> <span>Settings</span></NavLink>
