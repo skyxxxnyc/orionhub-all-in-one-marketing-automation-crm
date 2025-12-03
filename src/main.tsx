@@ -68,11 +68,10 @@ export default function App() {
 const container = document.getElementById('root');
 if (container) {
   // Reuse the root across HMR (react-refresh) to avoid calling createRoot multiple times
-  const w = window as any;
-  let root = w.__REACT_ROOT__;
+  let root = (container as any)._reactRoot;
   if (!root) {
     root = createRoot(container);
-    w.__REACT_ROOT__ = root;
+    (container as any)._reactRoot = root;
   }
   root.render(
     <StrictMode>

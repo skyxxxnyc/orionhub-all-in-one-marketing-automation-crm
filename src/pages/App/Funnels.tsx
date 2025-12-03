@@ -5,15 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Globe, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import type { Funnel } from '@shared/types';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { FunnelSequencer } from '@/components/FunnelSequencer';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
+  const [isSequencerOpen, setSequencerOpen] = useState<Funnel | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['funnels'],
     queryFn: fetchFunnels,
@@ -54,9 +59,9 @@ export function Funnels() {
                   ))
                 ) : funnels.length > 0 ? (
                   funnels.map((funnel) => (
-                    <TableRow key={funnel.id} onClick={() => navigate(`/app/funnels/${funnel.id}`)} className="cursor-pointer">
-                      <TableCell className="font-medium">{funnel.name}</TableCell>
-                      <TableCell>{funnel.steps.length}</TableCell>
+                    <TableRow key={funnel.id} className="cursor-pointer">
+                      <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.id}`)}>{funnel.name}</TableCell>
+                      <TableCell onClick={() => setSequencerOpen(funnel)}>{funnel.steps.length}</TableCell>
                       <TableCell>{format(new Date(funnel.createdAt), 'PP')}</TableCell>
                       <TableCell>--</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -67,7 +72,8 @@ export function Funnels() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/app/funnels/${funnel.id}`)}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/app/funnels/${funnel.id}`)}>Edit First Page</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSequencerOpen(funnel)}>View Steps</DropdownMenuItem>
                             <DropdownMenuItem>View Stats</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -84,6 +90,14 @@ export function Funnels() {
             </Table>
           </CardContent>
         </Card>
+        <Sheet open={!!isSequencerOpen} onOpenChange={(open) => !open && setSequencerOpen(null)}>
+          <SheetContent className="sm:max-w-2xl">
+            <SheetHeader>
+              <SheetTitle>Funnel: {isSequencerOpen?.name}</SheetTitle>
+            </SheetHeader>
+            {isSequencerOpen && <FunnelSequencer funnel={isSequencerOpen} />}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

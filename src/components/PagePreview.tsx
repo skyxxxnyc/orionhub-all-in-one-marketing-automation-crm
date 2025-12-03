@@ -19,8 +19,7 @@ export function PagePreview({ nodes, viewMode }: PagePreviewProps) {
         <div className="relative h-[800px]">
           {nodes.map(node => (
             <div key={node.id} style={{ position: 'absolute', left: node.position.x, top: node.position.y, width: node.width, height: node.height }}>
-              {/* The Node type from reactflow can be complex, casting to any for preview is acceptable here */}
-              <PageElementNode {...(node as any)} />
+              <PageElementNode {...node} />
             </div>
           ))}
         </div>

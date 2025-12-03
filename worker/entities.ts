@@ -3,7 +3,7 @@
  */
 import { IndexedEntity } from "./core-utils";
 import type { Env } from './core-utils';
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role } from "@shared/types";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, PageElement } from "@shared/types";
 import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
