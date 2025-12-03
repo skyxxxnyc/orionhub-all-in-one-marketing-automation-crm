@@ -91,7 +91,7 @@ export function Automations() {
               nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
               onConnect={onConnect} onNodeClick={onNodeClick} onPaneClick={onPaneClick}
               nodeTypes={nodeTypes} fitView
-              aria-label="Workflow builder canvas" role="application"
+              aria-label="Workflow canvas" role="application"
             >
               <Controls />
               <MiniMap aria-hidden="true" />
@@ -134,7 +134,7 @@ export function Automations() {
             <h1 className="text-3xl font-bold">Automations</h1>
             <p className="text-muted-foreground">Create and manage your marketing workflows.</p>
           </div>
-          <OnboardingTooltip tourId="new-workflow" content="Start building your first automation from a template.">
+          <OnboardingTooltip tourId="new-workflow" content="Start with a template for faster setup.">
             <Sheet open={isTemplateSheetOpen} onOpenChange={setTemplateSheetOpen}>
               <SheetTrigger asChild>
                 <Button><PlusCircle className="mr-2 h-4 w-4" /> New Workflow</Button>
@@ -174,6 +174,7 @@ export function Automations() {
                       onClick={() => handleSelectWorkflow(workflow)}
                       className="cursor-pointer hover:bg-muted/50"
                       whileHover={{ scale: 1.01 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <TableCell className="font-medium">{workflow.name}</TableCell>
                       <TableCell><Badge>Active</Badge></TableCell>

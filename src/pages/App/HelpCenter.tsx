@@ -55,7 +55,7 @@ export function HelpCenter() {
                             <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><BookOpen /> Knowledge Base</h2>
                             <div className="space-y-4">
                                 {filteredArticles.map(article => (
-                                    <motion.div key={article.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }}>
+                                    <motion.div key={article.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
                                         <Card className="hover:shadow-md transition-shadow">
                                             <CardHeader>
                                                 <CardTitle>{article.title}</CardTitle>
@@ -99,7 +99,7 @@ export function HelpCenter() {
                             </div>
                         </section>
                         <section>
-                            <SupportTicketSystem />
+                           <SupportTicketSystem />
                         </section>
                     </div>
                 </div>

@@ -16,7 +16,9 @@ export function Reporting() {
             <h1 className="text-3xl font-bold text-foreground">Reporting</h1>
             <p className="text-muted-foreground">Deep dive into your business analytics.</p>
           </div>
-          <DataExport />
+          <div className="flex gap-2">
+            <DataExport />
+          </div>
         </div>
         {isAgency && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -34,7 +36,7 @@ export function Reporting() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg.id && ws.id !== 'ws-1').map(ws => (
+                    {MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg?.id && ws.id !== 'ws-1').map(ws => (
                        <TableRow key={ws.id}>
                           <TableCell>{ws.name}</TableCell>
                           <TableCell>{(Math.random() * 1000).toFixed(0)}</TableCell>
@@ -47,7 +49,7 @@ export function Reporting() {
             </Card>
           </motion.div>
         )}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, staggerChildren: 0.1 }}>
           <AdvancedReporting />
         </motion.div>
       </div>

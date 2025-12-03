@@ -27,8 +27,8 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
       template.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm]);
-  const onDragStart = (event: React.DragEvent, templateId: string) => {
-    event.dataTransfer.setData('application/reactflow-template', templateId);
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: Workflow) => {
+    event.dataTransfer.setData('application/reactflow-template', JSON.stringify(template));
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
@@ -57,7 +57,7 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
               className="cursor-pointer"
               onClick={() => onSelect(template)}
               draggable
-              onDragStart={(e) => onDragStart(e, template.id)}
+              onDragStart={(e) => onDragStart(e, template)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -69,8 +69,8 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
                 <CardContent className="h-40 bg-muted/50 pointer-events-none">
                   <div className="h-full w-full overflow-hidden">
                     <ReactFlow
-                      nodes={template.nodes}
-                      edges={template.edges}
+                      nodes={template.nodes ?? []}
+                      edges={template.edges ?? []}
                       fitView
                       nodesDraggable={false}
                       nodesConnectable={false}
