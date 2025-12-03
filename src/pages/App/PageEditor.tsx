@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactFlow, {
@@ -11,7 +11,6 @@ import ReactFlow, {
   OnNodesChange,
   OnEdgesChange,
   NodeTypes,
-  MiniMap,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Button } from '@/components/ui/button';
@@ -37,9 +36,10 @@ export function PageEditor() {
     queryKey: ['page', id],
     queryFn: () => fetchPage(id!),
     enabled: !!id,
-    onSuccess: (data) => {
-      // Convert PageElement[] to React Flow nodes
-      const initialNodes = data.content.map(el => ({
+  });
+  useEffect(() => {
+    if (page) {
+      const initialNodes = page.content.map(el => ({
         id: el.id,
         type: 'default', // Use custom nodes later
         position: el.position,
@@ -47,7 +47,7 @@ export function PageEditor() {
       }));
       setNodes(initialNodes);
     }
-  });
+  }, [page]);
   const saveMutation = useMutation({
     mutationFn: (content: PageElement[]) =>
       api(`/api/pages/${id}`, { method: 'PUT', body: JSON.stringify({ content }) }),
@@ -78,7 +78,7 @@ export function PageEditor() {
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate('/app/funnels')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
-            <h2 className="text-md font-semibold">{page?.name}</h2>
+            <h2 className="text-md font-semibold">{page?.name ?? 'Untitled Page'}</h2>
             <p className="text-xs text-muted-foreground">Page Editor</p>
           </div>
         </div>

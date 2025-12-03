@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -234,4 +234,35 @@ export const MOCK_FUNNELS: Funnel[] = [
       { id: 'step-5', pageId: 'page-2', order: 2 },
     ],
   },
+];
+const today = new Date();
+const setTime = (date: Date, hours: number, minutes: number) => {
+  const d = new Date(date);
+  d.setHours(hours, minutes, 0, 0);
+  return d.getTime();
+};
+export const MOCK_APPOINTMENTS: Appointment[] = [
+  { id: 'appt-1', title: 'Discovery Call with Alice', start: setTime(today, 10, 0), end: setTime(today, 10, 30), contactId: 'contact-1', type: 'Discovery Call', status: 'scheduled', bufferBefore: 15, bufferAfter: 15 },
+  { id: 'appt-2', title: 'Onboarding with Bob', start: setTime(today, 14, 0), end: setTime(today, 15, 0), contactId: 'contact-2', type: 'Onboarding', status: 'scheduled', bufferBefore: 0, bufferAfter: 30 },
+  { id: 'appt-3', title: 'Project Kickoff', start: setTime(new Date(today.getTime() + 86400000), 11, 0), end: setTime(new Date(today.getTime() + 86400000), 12, 0), contactId: 'contact-4', type: 'Meeting', status: 'scheduled', bufferBefore: 15, bufferAfter: 0 },
+  { id: 'appt-4', title: 'Follow-up with Charlie', start: setTime(new Date(today.getTime() + 86400000 * 2), 9, 30), end: setTime(new Date(today.getTime() + 86400000 * 2), 10, 0), contactId: 'contact-3', type: 'Follow-up', status: 'completed', bufferBefore: 0, bufferAfter: 0 },
+  { id: 'appt-5', title: 'Demo for Growth Partners', start: setTime(new Date(today.getTime() - 86400000), 16, 0), end: setTime(new Date(today.getTime() - 86400000), 16, 45), contactId: 'contact-4', type: 'Demo', status: 'cancelled', bufferBefore: 15, bufferAfter: 15 },
+];
+export const MOCK_AVAILABILITIES: Availability[] = [
+  { id: 'avail-1', userId: 'u1', dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }, // Monday
+  { id: 'avail-2', userId: 'u1', dayOfWeek: 2, startTime: '09:00', endTime: '17:00' }, // Tuesday
+  { id: 'avail-3', userId: 'u1', dayOfWeek: 3, startTime: '09:00', endTime: '17:00' }, // Wednesday
+  { id: 'avail-4', userId: 'u1', dayOfWeek: 4, startTime: '09:00', endTime: '17:00' }, // Thursday
+  { id: 'avail-5', userId: 'u1', dayOfWeek: 5, startTime: '09:00', endTime: '17:00' }, // Friday
+];
+export const MOCK_CALENDAR_EVENTS: CalendarEvent[] = MOCK_APPOINTMENTS.filter(a => a.status === 'scheduled').map(a => ({
+  id: a.id,
+  title: a.title,
+  start: a.start,
+  end: a.end,
+  color: a.type === 'Discovery Call' ? '#3b82f6' : '#8b5cf6',
+}));
+export const MOCK_INTEGRATIONS: Integration[] = [
+  { id: 'int-1', type: 'google', status: 'connected', syncToken: 'sync-token-123' },
+  { id: 'int-2', type: 'outlook', status: 'disconnected' },
 ];

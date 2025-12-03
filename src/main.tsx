@@ -22,6 +22,7 @@ import { Campaigns } from '@/pages/App/Campaigns';
 import { Inbox } from '@/pages/App/Inbox';
 import { Funnels } from '@/pages/App/Funnels';
 import { PageEditor } from '@/pages/App/PageEditor';
+import { Calendar as CalendarPage } from '@/pages/App/Calendar';
 // Layouts & Auth
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuthStore } from '@/lib/mock-auth';
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
       { path: "campaigns", element: <Campaigns /> },
       { path: "inbox", element: <Inbox /> },
       { path: "funnels", element: <Funnels /> },
+      { path: "calendar", element: <CalendarPage /> },
       { path: "funnels/:id", element: <PageEditor /> }, // Simplified for now
       { path: "pages/:id/edit", element: <PageEditor /> },
     ],

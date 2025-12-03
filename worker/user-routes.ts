@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -312,6 +312,64 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const funnel = new FunnelEntity(c.env, c.req.param('id'));
     if (!await funnel.exists()) return notFound(c, 'funnel not found');
     return ok(c, await funnel.getState());
+  });
+  // CALENDAR & SCHEDULING
+  app.get('/api/appointments', async (c) => {
+    await AppointmentEntity.ensureSeed(c.env);
+    return ok(c, await AppointmentEntity.list(c.env));
+  });
+  app.get('/api/appointments/:id', async (c) => {
+    const appointment = new AppointmentEntity(c.env, c.req.param('id'));
+    if (!await appointment.exists()) return notFound(c, 'appointment not found');
+    return ok(c, await appointment.getState());
+  });
+  app.post('/api/appointments', async (c) => {
+    const body = (await c.req.json()) as Partial<Appointment>;
+    if (!isStr(body.title) || !body.start || !body.end) return bad(c, 'title, start, and end are required');
+    const newAppointment: Appointment = {
+      id: crypto.randomUUID(),
+      title: body.title,
+      start: body.start,
+      end: body.end,
+      type: body.type || 'Meeting',
+      status: 'scheduled',
+      bufferBefore: body.bufferBefore || 0,
+      bufferAfter: body.bufferAfter || 0,
+      contactId: body.contactId,
+    };
+    return ok(c, await AppointmentEntity.create(c.env, newAppointment));
+  });
+  app.put('/api/appointments/:id', async (c) => {
+    const appointment = new AppointmentEntity(c.env, c.req.param('id'));
+    if (!await appointment.exists()) return notFound(c, 'appointment not found');
+    const patch = (await c.req.json()) as Partial<Appointment>;
+    await appointment.patch(patch);
+    return ok(c, await appointment.getState());
+  });
+  app.get('/api/availability/:userId', async (c) => {
+    await AvailabilityEntity.ensureSeed(c.env);
+    const all = (await AvailabilityEntity.list(c.env)).items;
+    const userAvailability = all.filter(a => a.userId === c.req.param('userId'));
+    return ok(c, userAvailability);
+  });
+  app.get('/api/calendar/events', async (c) => {
+    await CalendarEventEntity.ensureSeed(c.env);
+    return ok(c, await CalendarEventEntity.list(c.env));
+  });
+  // INTEGRATIONS
+  app.get('/api/integrations', async (c) => {
+    await IntegrationEntity.ensureSeed(c.env);
+    return ok(c, await IntegrationEntity.list(c.env));
+  });
+  app.post('/api/integrations/connect', async (c) => {
+    const { type } = (await c.req.json()) as { type?: 'google' | 'outlook' };
+    if (!type) return bad(c, 'type is required');
+    const all = (await IntegrationEntity.list(c.env)).items;
+    const integration = all.find(i => i.type === type);
+    if (!integration) return notFound(c, 'integration not found');
+    const entity = new IntegrationEntity(c.env, integration.id);
+    await entity.connect();
+    return ok(c, { success: true, message: `${type} connected` });
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
