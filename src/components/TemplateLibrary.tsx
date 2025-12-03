@@ -16,7 +16,7 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
     queryKey: [type === 'email' ? 'emailTemplates' : 'smsTemplates'],
     queryFn: type === 'email' ? fetchEmailTemplates : fetchSmsTemplates,
   });
-  const templates = data?.items ?? [];
+  const templates = (data?.items ?? []) as Array<EmailTemplate | SMSTemplate>;
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

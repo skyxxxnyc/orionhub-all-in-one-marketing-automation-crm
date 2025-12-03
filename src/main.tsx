@@ -53,7 +53,7 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-function App() {
+export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   useEffect(() => {
     checkAuth();
@@ -67,7 +67,13 @@ function App() {
 }
 const container = document.getElementById('root');
 if (container) {
-  const root = createRoot(container);
+  // Reuse the root across HMR (react-refresh) to avoid calling createRoot multiple times
+  const w = window as any;
+  let root = w.__REACT_ROOT__;
+  if (!root) {
+    root = createRoot(container);
+    w.__REACT_ROOT__ = root;
+  }
   root.render(
     <StrictMode>
       <ErrorBoundary>
