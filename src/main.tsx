@@ -17,6 +17,9 @@ import { Dashboard } from '@/pages/App/Dashboard';
 import { Contacts } from '@/pages/App/Contacts';
 import { ContactDetail } from '@/pages/App/ContactDetail';
 import { Pipeline } from '@/pages/App/Pipeline';
+import { Automations } from '@/pages/App/Automations';
+import { Campaigns } from '@/pages/App/Campaigns';
+import { Inbox } from '@/pages/App/Inbox';
 // Layouts & Auth
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuthStore } from '@/lib/mock-auth';
@@ -82,7 +85,9 @@ const router = createBrowserRouter([
       { path: "contacts", element: <Contacts /> },
       { path: "contacts/:id", element: <ContactDetail /> },
       { path: "pipeline", element: <Pipeline /> },
-      { path: "automations", element: <div>Automations Page</div> },
+      { path: "automations", element: <Automations /> },
+      { path: "campaigns", element: <Campaigns /> },
+      { path: "inbox", element: <Inbox /> },
     ],
   },
 ]);

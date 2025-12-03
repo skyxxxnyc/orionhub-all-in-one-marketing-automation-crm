@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -142,6 +142,43 @@ export const MOCK_WORKFLOWS: Workflow[] = [
       { id: 'e1-2', source: '1', target: '2', animated: true },
       { id: 'e2-3', source: '2', target: '3', animated: true },
       { id: 'e3-4', source: '3', target: '4', animated: true },
+    ],
+  },
+];
+export const MOCK_EMAIL_TEMPLATES: EmailTemplate[] = [
+  { id: 'et-1', name: 'Welcome Email', subject: 'Welcome to OrionHub!', body: 'Hi {{contact.name}}, thanks for joining!', mergeTags: ['contact.name'] },
+  { id: 'et-2', name: 'Follow-up', subject: 'Following up on our chat', body: 'Hi {{contact.name}}, just wanted to follow up.', mergeTags: ['contact.name'] },
+  { id: 'et-3', name: 'Newsletter', subject: 'This Week in OrionHub', body: 'Check out our latest updates...', mergeTags: [] },
+];
+export const MOCK_SMS_TEMPLATES: SMSTemplate[] = [
+  { id: 'st-1', name: 'Appointment Reminder', body: 'Hi {{contact.name}}, your appointment is tomorrow at {{appointment.time}}.', mergeTags: ['contact.name', 'appointment.time'] },
+  { id: 'st-2', name: 'Promo Offer', body: 'Get 20% off with code PROMO20!', mergeTags: [] },
+];
+export const MOCK_CAMPAIGNS: Campaign[] = [
+  { id: 'camp-1', type: 'email', name: 'Q3 Newsletter', templateId: 'et-3', status: 'sent', analytics: { sends: 1200, deliveries: 1190, opens: 450, clicks: 80 } },
+  { id: 'camp-2', type: 'sms', name: 'Black Friday Promo', templateId: 'st-2', status: 'scheduled', scheduledAt: Date.now() + 86400000 * 7, analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } },
+  { id: 'camp-3', type: 'email', name: 'Welcome Series', templateId: 'et-1', status: 'draft', analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } },
+  { id: 'camp-4', type: 'email', name: 'Re-engagement', templateId: 'et-2', status: 'sent', analytics: { sends: 500, deliveries: 490, opens: 120, clicks: 15 } },
+];
+export const MOCK_CONVERSATIONS: Conversation[] = [
+  {
+    id: 'conv-1', contactId: 'contact-1', channel: 'email', status: 'open', assignedTo: 'u1', lastMessageAt: Date.now() - 3600000,
+    messages: [
+      { id: 'msg-1-1', from: 'Alice Johnson', text: 'Hi, I have a question about pricing.', direction: 'in', timestamp: Date.now() - 3600000 * 2 },
+      { id: 'msg-1-2', from: 'user', text: 'Hi Alice, I can help with that. What would you like to know?', direction: 'out', timestamp: Date.now() - 3600000 },
+    ],
+  },
+  {
+    id: 'conv-2', contactId: 'contact-2', channel: 'sms', status: 'closed', lastMessageAt: Date.now() - 86400000,
+    messages: [
+      { id: 'msg-2-1', from: 'user', text: 'Your invoice is ready.', direction: 'out', timestamp: Date.now() - 86400000 * 2 },
+      { id: 'msg-2-2', from: 'Bob Williams', text: 'Thanks!', direction: 'in', timestamp: Date.now() - 86400000 },
+    ],
+  },
+  {
+    id: 'conv-3', contactId: 'contact-4', channel: 'email', status: 'open', lastMessageAt: Date.now() - 3600000 * 5,
+    messages: [
+      { id: 'msg-3-1', from: 'Diana Miller', text: 'Interested in learning more about your services.', direction: 'in', timestamp: Date.now() - 3600000 * 5 },
     ],
   },
 ];

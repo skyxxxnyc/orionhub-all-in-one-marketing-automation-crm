@@ -1,66 +1,37 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api-client';
-import type { EmailTemplate, SMSTemplate, Page } from '@shared/types';
-import { cn } from '@/lib/utils';
-import { Skeleton } from './ui/skeleton';
+import type { EmailTemplate, SMSTemplate } from '@shared/types';
 const fetchEmailTemplates = async () => api<{ items: EmailTemplate[] }>('/api/templates/email');
 const fetchSmsTemplates = async () => api<{ items: SMSTemplate[] }>('/api/templates/sms');
-const fetchPageTemplates = async () => api<{ items: Page[] }>('/api/templates/pages'); // Mock endpoint
 interface TemplateLibraryProps {
-  type: 'email' | 'sms' | 'page';
+  type: 'email' | 'sms';
   onSelect: (id: string) => void;
 }
 export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
-  const queryFn = () => {
-    switch (type) {
-      case 'email': return fetchEmailTemplates();
-      case 'sms': return fetchSmsTemplates();
-      case 'page': return fetchPageTemplates();
-      default: return Promise.resolve({ items: [] });
-    }
-  };
   const { data, isLoading } = useQuery({
-    queryKey: [`${type}Templates`],
-    queryFn,
+    queryKey: [type === 'email' ? 'emailTemplates' : 'smsTemplates'],
+    queryFn: type === 'email' ? fetchEmailTemplates : fetchSmsTemplates,
   });
-  const templates = (data?.items ?? []) as Array<EmailTemplate | SMSTemplate | Page>;
+  const templates = data?.items ?? [];
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)
-        ) : (
-          templates.map((template) => (
-            <motion.div
-              key={template.id}
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="cursor-pointer"
-              onClick={() => onSelect(template.id)}
-            >
-              <Card className="h-full">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                    <Badge variant="outline" className="capitalize">{type}</Badge>
-                  </div>
-                  {'subject' in template && <CardDescription>{template.subject}</CardDescription>}
-                </CardHeader>
-                <CardContent>
-                  {'body' in template && template.body ? (
-                    <div className={cn("text-sm text-muted-foreground line-clamp-2")}>{template.body}</div>
-                  ) : 'content' in template ? (
-                     <div className={cn("text-sm text-muted-foreground line-clamp-2")}>Page template with {template.content.length} elements.</div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">No content preview.</p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))
-        )}
+        {templates.map((template) => (
+          <motion.div key={template.id} whileHover={{ scale: 1.02 }} className="cursor-pointer" onClick={() => onSelect(template.id)}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{template.name}</CardTitle>
+                {'subject' in template && <CardDescription>{template.subject}</CardDescription>}
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground line-clamp-2">{template.body}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
     </div>
   );

@@ -77,3 +77,47 @@ export interface Workflow {
   createdAt: number;
   updatedAt: number;
 }
+// Communication Types
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  mergeTags: string[];
+}
+export interface SMSTemplate {
+  id: string;
+  name: string;
+  body: string;
+  mergeTags: string[];
+}
+export interface Campaign {
+  id: string;
+  type: 'email' | 'sms';
+  name: string;
+  templateId: string;
+  scheduledAt?: number;
+  status: 'draft' | 'scheduled' | 'sent';
+  analytics: {
+    opens: number;
+    clicks: number;
+    deliveries: number;
+    sends: number;
+  };
+}
+export interface Message {
+  id: string;
+  from: string; // 'user' or contact name/email
+  text: string;
+  timestamp: number;
+  direction: 'in' | 'out';
+}
+export interface Conversation {
+  id: string;
+  contactId: string;
+  channel: 'email' | 'sms';
+  messages: Message[];
+  status: 'open' | 'closed';
+  assignedTo?: string; // User ID
+  lastMessageAt: number;
+}
