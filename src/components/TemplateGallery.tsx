@@ -28,7 +28,12 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
     if (currentOrg) {
       const savedFavorites = localStorage.getItem(`favorites_${currentOrg.id}`);
       if (savedFavorites) {
-        setFavorites(JSON.parse(savedFavorites));
+        try {
+          setFavorites(JSON.parse(savedFavorites));
+        } catch (e) {
+          console.error("Failed to parse favorites from localStorage", e);
+          setFavorites([]);
+        }
       }
     }
   }, [currentOrg]);

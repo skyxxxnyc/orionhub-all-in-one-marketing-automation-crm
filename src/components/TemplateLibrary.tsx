@@ -1,32 +1,35 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api-client';
-import type { EmailTemplate, SMSTemplate, Page } from '@shared/types';
+import type { EmailTemplate, SMSTemplate, Page, Funnel } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
-const fetchEmailTemplates = async () => api<{ items: EmailTemplate[] }>('/api/templates/email');
-const fetchSmsTemplates = async () => api<{ items: SMSTemplate[] }>('/api/templates/sms');
-const fetchPageTemplates = async () => api<{ items: Page[] }>('/api/pages/templates');
+import { useAuthStore } from '@/lib/mock-auth';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+const fetchTemplates = async (type: 'email' | 'sms' | 'page' | 'funnel') => {
+  let endpoint = '';
+  switch (type) {
+    case 'email': endpoint = '/api/templates/email'; break;
+    case 'sms': endpoint = '/api/templates/sms'; break;
+    case 'page': endpoint = '/api/pages/templates'; break;
+    case 'funnel': endpoint = '/api/funnels/templates'; break;
+    default: return { items: [] };
+  }
+  return api<{ items: any[] }>(endpoint);
+};
 interface TemplateLibraryProps {
-  type: 'email' | 'sms' | 'page';
+  type: 'email' | 'sms' | 'page' | 'funnel';
   onSelect: (id: string) => void;
 }
 export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
-  const queryFn = () => {
-    switch (type) {
-      case 'email': return fetchEmailTemplates();
-      case 'sms': return fetchSmsTemplates();
-      case 'page': return fetchPageTemplates();
-      default: return Promise.resolve({ items: [] });
-    }
-  };
   const { data, isLoading } = useQuery({
     queryKey: [`${type}Templates`],
-    queryFn,
+    queryFn: () => fetchTemplates(type),
   });
-  const templates = (data?.items ?? []) as Array<EmailTemplate | SMSTemplate | Page>;
+  const templates = (data?.items ?? []) as Array<EmailTemplate | SMSTemplate | Page | Funnel>;
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -47,12 +50,18 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
                     <Badge variant="outline" className="capitalize">{type}</Badge>
                   </div>
                   {'subject' in template && <CardDescription>{template.subject}</CardDescription>}
+                  {'description' in template && <CardDescription className="line-clamp-2">{template.description}</CardDescription>}
                 </CardHeader>
                 <CardContent>
                   {'body' in template && template.body ? (
                     <div className={cn("text-sm text-muted-foreground line-clamp-2")} dangerouslySetInnerHTML={{ __html: template.body }} />
                   ) : 'content' in template ? (
                      <div className={cn("text-sm text-muted-foreground line-clamp-2")}>Page template with {template.content.length} elements.</div>
+                  ) : 'steps' in template ? (
+                    <div className="text-sm text-muted-foreground">
+                      <Badge>{template.steps.length} Steps</Badge>
+                      <p className="mt-2 truncate">{template.steps.map(s => s.pageId).join(' → ')}</p>
+                    </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic">No content preview.</p>
                   )}

@@ -13,9 +13,19 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       BillingEntity.ensureSeed(c.env), OrganizationEntity.ensureSeed(c.env), WorkspaceEntity.ensureSeed(c.env),
       TicketEntity.ensureSeed(c.env), CalendarEventEntity.ensureSeed(c.env), PageEntity.ensureSeed(c.env),
       ProjectEntity.ensureSeed(c.env), TemplateEntity.ensureSeed(c.env), ChatSessionEntity.ensureSeed(c.env),
-      ArticleEntity.ensureSeed(c.env),
+      ArticleEntity.ensureSeed(c.env), FunnelEntity.ensureSeed(c.env),
     ]);
     await next();
+  });
+  // --- Funnel Routes ---
+  app.get('/api/funnels/templates', async (c) => {
+    const { category } = c.req.query();
+    let { items } = await FunnelEntity.list(c.env);
+    items = items.filter(f => f.isTemplate);
+    if (category) {
+      items = items.filter(f => f.category === category);
+    }
+    return ok(c, { items });
   });
   // --- Article Routes ---
   app.get('/api/articles', async (c) => {

@@ -67,13 +67,28 @@ export const MOCK_WORKFLOW_TEMPLATES: WorkflowState[] = [
 export const MOCK_WORKFLOWS: Workflow[] = [
   { id: 'wf-1', name: 'Live Abandoned Cart Flow', nodes: [], edges: [], createdAt: Date.now(), updatedAt: Date.now() },
 ];
-// --- NEW EXPANDED PAGE TEMPLATES ---
+// --- NEW EXPANDED PAGE & FUNNEL TEMPLATES ---
 export const MOCK_PAGE_TEMPLATES: Page[] = [
+  { id: 'pt-lead-capture', name: 'Lead Capture Opt-in', description: 'A simple page with a form to capture leads.', category: 'funnel', industry: 'various', complexity: 'simple', content: [{id:'el1', type:'text', content:'<h1>Download Our Free E-book</h1>', position:{x:50,y:50}}, {id:'el2', type:'form', content:'', config:{fields:[{id:'email',label:'Email',required:true}]}, position:{x:50,y:150}}], analytics: {views: 1000, conversions: 200}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
+  { id: 'pt-thank-you', name: 'Simple Thank You Page', description: 'A confirmation page after a form submission.', category: 'funnel', industry: 'various', complexity: 'simple', content: [{id:'el1', type:'text', content:'<h2>Thanks for signing up!</h2>', position:{x:50,y:50}}], analytics: {views: 200, conversions: 0}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
+  { id: 'pt-webinar-reg', name: 'Webinar Registration Page', description: 'Page to register for an upcoming webinar.', category: 'funnel', industry: 'saas', complexity: 'medium', content: [], analytics: {views: 500, conversions: 150}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
   { id: 'pt-1', name: 'SaaS Trial Signup', description: 'A high-conversion page for SaaS free trials.', category: 'landing', industry: 'saas', complexity: 'medium', content: [], analytics: {views: 12000, conversions: 1500}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
   { id: 'pt-2', name: 'Real Estate Open House RSVP', description: 'Capture RSVPs and showcase property details.', category: 'funnel', industry: 'real-estate', complexity: 'advanced', content: [], analytics: {views: 5000, conversions: 400}, createdAt: Date.now(), isTemplate: true, orgId: 'org-1' },
 ];
+export const MOCK_FUNNEL_TEMPLATES: Funnel[] = [
+  { id: 'funnel-t1', name: 'Lead Capture Funnel', steps: [{id:'s1', pageId:'pt-lead-capture', order:1}, {id:'s2', pageId:'pt-thank-you', order:2}], createdAt: Date.now() },
+  { id: 'funnel-t2', name: 'Webinar Registration', steps: [{id:'s1', pageId:'pt-webinar-reg', order:1}, {id:'s2', pageId:'pt-thank-you', order:2}], createdAt: Date.now() },
+  // Add more funnel templates here...
+];
 export const MOCK_PAGES: Page[] = [
+  ...MOCK_PAGE_TEMPLATES,
   { ...MOCK_PAGE_TEMPLATES[0], id: 'page-1', name: 'Live SaaS Landing Page', isTemplate: false, orgId: 'org-1' },
+];
+export const MOCK_FUNNELS: Funnel[] = [
+  {
+    id: 'funnel-1', name: 'Main Lead Funnel', createdAt: Date.now() - 86400000 * 5,
+    steps: [{ id: 'step-1', pageId: 'page-1', order: 1 }],
+  },
 ];
 // --- NEW MOCK PROJECTS & TEMPLATE GALLERY ---
 export const MOCK_PROJECTS: Project[] = [
@@ -102,12 +117,6 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     messages: [
       { id: 'msg-1-1', from: 'Alice Johnson', text: 'Hi, I have a question about pricing.', direction: 'in', timestamp: Date.now() - 3600000 * 2 },
     ],
-  },
-];
-export const MOCK_FUNNELS: Funnel[] = [
-  {
-    id: 'funnel-1', name: 'Main Lead Funnel', createdAt: Date.now() - 86400000 * 5,
-    steps: [{ id: 'step-1', pageId: 'page-1', order: 1 }],
   },
 ];
 const today = new Date();

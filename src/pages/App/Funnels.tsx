@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,22 +15,43 @@ import { FunnelSequencer } from '@/components/FunnelSequencer';
 import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 import { motion } from 'framer-motion';
 import { TemplateLibrary } from '@/components/TemplateLibrary';
+import { useAuthStore } from '@/lib/mock-auth';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const currentOrg = useAuthStore(s => s.currentOrg);
   const [isSequencerOpen, setSequencerOpen] = useState<Funnel | null>(null);
   const [isTemplateSheetOpen, setTemplateSheetOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [funnelFilter, setFunnelFilter] = useState('all');
   const { data, isLoading } = useQuery({
     queryKey: ['funnels'],
     queryFn: fetchFunnels,
   });
-  const funnels = useMemo(() => data?.items ?? [], [data]);
+  const createFunnelMutation = useMutation({
+    mutationFn: (data: { templateId: string, orgId?: string }) => api<Funnel>('/api/funnels', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (newFunnel) => {
+      toast.success('Funnel created from template!');
+      queryClient.invalidateQueries({ queryKey: ['funnels'] });
+      navigate(`/app/funnels/${newFunnel.id}`);
+      setTemplateSheetOpen(false);
+    },
+    onError: () => toast.error('Failed to create funnel.'),
+  });
   const handleTemplateSelect = (templateId: string) => {
-    // In a real app, this would likely be a mutation to create a new funnel from a template
-    console.log("Creating new funnel from template:", templateId);
-    setTemplateSheetOpen(false);
-    navigate(`/app/funnels/new`, { state: { templateId } });
+    createFunnelMutation.mutate({ templateId, orgId: currentOrg?.id });
   };
+  const funnels = useMemo(() => {
+    let items = data?.items.filter(f => !f.isTemplate) ?? [];
+    if (search) {
+      items = items.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
+    }
+    return items;
+  }, [data, search]);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
@@ -48,10 +69,13 @@ export function Funnels() {
                 <SheetHeader>
                   <SheetTitle>Create Funnel from Template</SheetTitle>
                 </SheetHeader>
-                <TemplateLibrary type="page" onSelect={handleTemplateSelect} />
+                <TemplateLibrary type="funnel" onSelect={handleTemplateSelect} />
               </SheetContent>
             </Sheet>
           </OnboardingTooltip>
+        </div>
+        <div className="mb-4 flex flex-col md:flex-row gap-4">
+          <Input placeholder="Search funnels..." value={search} onChange={e => setSearch(e.target.value)} className="flex-grow" />
         </div>
         <Card>
           <CardContent>

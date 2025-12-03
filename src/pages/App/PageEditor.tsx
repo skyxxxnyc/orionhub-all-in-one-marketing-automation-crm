@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactFlow, {
   Controls,
@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Save, ArrowLeft, Eye, Smartphone, Monitor, BarChart2, Settings2, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
-import type { Page, PageElement } from '@shared/types';
+import type { Page, PageElement, Funnel } from '@shared/types';
 import { PageToolbox } from '@/components/PageToolbox';
 import { PageInspector } from '@/components/PageInspector';
 import { PageElementNode } from '@/components/PageElementTypes';
@@ -36,6 +36,7 @@ const nodeTypes: NodeTypes = {
 export function PageEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -44,13 +45,35 @@ export function PageEditor() {
   const [selectedNode, setSelectedNode] = useState<Node<PageElement> | null>(null);
   const [viewMode, setViewMode] = useState<'editor' | 'preview'>('editor');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [activeFunnel, setActiveFunnel] = useState<Funnel | null>(null);
   const { data: page, isLoading } = useQuery({
     queryKey: ['page', id],
     queryFn: () => fetchPage(id!),
     enabled: !!id,
   });
   useEffect(() => {
-    if (page) {
+    const loadTemplate = async (templateId: string) => {
+      try {
+        const template = await api<Funnel>(`/api/funnels/${templateId}`);
+        const firstStepPageId = template.steps[0]?.pageId;
+        if (firstStepPageId) {
+          const firstPage = await api<Page>(`/api/pages/${firstStepPageId}`);
+          const initialNodes = firstPage.content.map(el => ({
+            id: el.id,
+            type: 'default',
+            position: el.position,
+            data: el,
+          }));
+          setNodes(initialNodes);
+          setActiveFunnel(template);
+        }
+      } catch (error) {
+        toast.error("Failed to load template.");
+      }
+    };
+    if (location.state?.templateId) {
+      loadTemplate(location.state.templateId);
+    } else if (page) {
       const initialNodes = page.content.map(el => ({
         id: el.id,
         type: 'default',
@@ -59,7 +82,7 @@ export function PageEditor() {
       }));
       setNodes(initialNodes);
     }
-  }, [page]);
+  }, [page, location.state]);
   const saveMutation = useMutation({
     mutationFn: (content: PageElement[]) =>
       api(`/api/pages/${id}`, { method: 'PUT', body: JSON.stringify({ content }) }),
@@ -110,7 +133,7 @@ export function PageEditor() {
     },
     [reactFlowInstance]
   );
-  if (isLoading) {
+  if (isLoading && !location.state?.templateId) {
     return <Skeleton className="h-screen w-full" />;
   }
   return (

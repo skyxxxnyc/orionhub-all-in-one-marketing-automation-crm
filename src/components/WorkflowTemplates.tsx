@@ -31,7 +31,8 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
     );
   }, [data, searchTerm]);
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, template: WorkflowState) => {
-    event.dataTransfer.setData('application/reactflow-template', JSON.stringify(template));
+    const nodeData = { ...template, orgId: currentOrg?.id };
+    event.dataTransfer.setData('application/reactflow-template', JSON.stringify(nodeData));
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
