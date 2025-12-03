@@ -3,6 +3,7 @@ import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing } from "@shared/types";
+import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -177,59 +178,16 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!nodes || !edges) return bad(c, 'nodes and edges are required');
     return ok(c, await workflow.update(nodes, edges));
   });
-  app.delete('/api/workflows/:id', async (c) => {
-    const deleted = await WorkflowEntity.delete(c.env, c.req.param('id'));
-    return ok(c, { id: c.req.param('id'), deleted });
-  });
-  app.post('/api/workflows/:id/simulate', async (c) => {
-    // Mock simulation
-    const workflow = new WorkflowEntity(c.env, c.req.param('id'));
-    if (!await workflow.exists()) return notFound(c, 'workflow not found');
-    const state = await workflow.getState();
-    const path = state.nodes.map(n => n.id);
-    return ok(c, { path, results: 'Simulation complete' });
-  });
-  // TEMPLATES
-  app.get('/api/templates/email', async (c) => {
-    await EmailTemplateEntity.ensureSeed(c.env);
-    return ok(c, await EmailTemplateEntity.list(c.env));
-  });
-  app.get('/api/templates/sms', async (c) => {
-    await SMSTemplateEntity.ensureSeed(c.env);
-    return ok(c, await SMSTemplateEntity.list(c.env));
-  });
   // CAMPAIGNS
   app.get('/api/campaigns', async (c) => {
     await CampaignEntity.ensureSeed(c.env);
     const page = await CampaignEntity.list(c.env);
     return ok(c, page);
   });
-  app.post('/api/campaigns', async (c) => {
-    const body = (await c.req.json()) as Partial<Campaign>;
-    if (!isStr(body.name) || !isStr(body.type) || !isStr(body.templateId)) return bad(c, 'name, type, and templateId required');
-    const newCampaign: Campaign = {
-      id: crypto.randomUUID(),
-      name: body.name,
-      type: body.type,
-      templateId: body.templateId,
-      status: 'draft',
-      analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 },
-      scheduledAt: body.scheduledAt,
-    };
-    if (body.scheduledAt) newCampaign.status = 'scheduled';
-    return ok(c, await CampaignEntity.create(c.env, newCampaign));
-  });
-  app.post('/api/campaigns/:id/send', async (c) => {
-    const campaign = new CampaignEntity(c.env, c.req.param('id'));
-    if (!await campaign.exists()) return notFound(c, 'campaign not found');
-    await campaign.send();
-    return ok(c, { success: true, deliveryId: crypto.randomUUID() });
-  });
-  // INBOX / CONVERSATIONS
+  // INBOX
   app.get('/api/inbox', async (c) => {
     await ConversationEntity.ensureSeed(c.env);
     const page = await ConversationEntity.list(c.env);
-    // Sort by most recent message
     page.items.sort((a, b) => b.lastMessageAt - a.lastMessageAt);
     return ok(c, page);
   });
@@ -246,77 +204,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     };
     return ok(c, await conversation.addMessage(message));
   });
-  app.put('/api/conversations/:id/status', async (c) => {
-    const conversation = new ConversationEntity(c.env, c.req.param('id'));
-    if (!await conversation.exists()) return notFound(c, 'conversation not found');
-    const { status } = (await c.req.json()) as { status?: 'open' | 'closed' };
-    if (status !== 'open' && status !== 'closed') return bad(c, 'valid status is required');
-    return ok(c, await conversation.updateStatus(status));
-  });
-  // PAGES & FUNNELS
-  app.get('/api/pages', async (c) => {
-    await PageEntity.ensureSeed(c.env);
-    return ok(c, await PageEntity.list(c.env));
-  });
-  app.post('/api/pages', async (c) => {
-    const { name } = (await c.req.json()) as Partial<Page>;
-    if (!isStr(name)) return bad(c, 'name is required');
-    const newPage: Page = {
-      id: crypto.randomUUID(),
-      name,
-      content: [],
-      analytics: { views: 0, conversions: 0 },
-      createdAt: Date.now(),
-    };
-    return ok(c, await PageEntity.create(c.env, newPage));
-  });
-  app.get('/api/pages/:id', async (c) => {
-    const page = new PageEntity(c.env, c.req.param('id'));
-    if (!await page.exists()) return notFound(c, 'page not found');
-    return ok(c, await page.getState());
-  });
-  app.put('/api/pages/:id', async (c) => {
-    const page = new PageEntity(c.env, c.req.param('id'));
-    if (!await page.exists()) return notFound(c, 'page not found');
-    const patch = (await c.req.json()) as Partial<Page>;
-    await page.patch(patch);
-    return ok(c, await page.getState());
-  });
-  app.post('/api/pages/:id/track', async (c) => {
-    const page = new PageEntity(c.env, c.req.param('id'));
-    if (!await page.exists()) return notFound(c, 'page not found');
-    const { type } = (await c.req.json()) as { type: 'view' | 'conversion' };
-    if (type === 'conversion') {
-      await page.trackConversion();
-    } else {
-      await page.trackView();
-    }
-    return ok(c, { success: true });
-  });
-  app.get('/api/funnels', async (c) => {
-    await FunnelEntity.ensureSeed(c.env);
-    return ok(c, await FunnelEntity.list(c.env));
-  });
-  app.post('/api/funnels', async (c) => {
-    const { name } = (await c.req.json()) as Partial<Funnel>;
-    if (!isStr(name)) return bad(c, 'name is required');
-    const newFunnel: Funnel = {
-      id: crypto.randomUUID(),
-      name,
-      steps: [],
-      createdAt: Date.now(),
-    };
-    return ok(c, await FunnelEntity.create(c.env, newFunnel));
-  });
-  app.get('/api/funnels/:id', async (c) => {
-    const funnel = new FunnelEntity(c.env, c.req.param('id'));
-    if (!await funnel.exists()) return notFound(c, 'funnel not found');
-    return ok(c, await funnel.getState());
-  });
-  // CALENDAR & SCHEDULING
-  app.get('/api/appointments', async (c) => {
-    await AppointmentEntity.ensureSeed(c.env);
-    return ok(c, await AppointmentEntity.list(c.env));
+  // CALENDAR
+  app.get('/api/calendar/events', async (c) => {
+    await CalendarEventEntity.ensureSeed(c.env);
+    return ok(c, await CalendarEventEntity.list(c.env));
   });
   app.get('/api/appointments/:id', async (c) => {
     const appointment = new AppointmentEntity(c.env, c.req.param('id'));
@@ -346,16 +237,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await appointment.patch(patch);
     return ok(c, await appointment.getState());
   });
-  app.get('/api/availability/:userId', async (c) => {
-    await AvailabilityEntity.ensureSeed(c.env);
-    const all = (await AvailabilityEntity.list(c.env)).items;
-    const userAvailability = all.filter(a => a.userId === c.req.param('userId'));
-    return ok(c, userAvailability);
-  });
-  app.get('/api/calendar/events', async (c) => {
-    await CalendarEventEntity.ensureSeed(c.env);
-    return ok(c, await CalendarEventEntity.list(c.env));
-  });
   // INTEGRATIONS
   app.get('/api/integrations', async (c) => {
     await IntegrationEntity.ensureSeed(c.env);
@@ -371,20 +252,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await entity.connect();
     return ok(c, { success: true, message: `${type} connected` });
   });
-  // ORGANIZATIONS & WORKSPACES
-  app.get('/api/organizations', async (c) => {
-    await OrganizationEntity.ensureSeed(c.env);
-    return ok(c, await OrganizationEntity.list(c.env));
-  });
-  app.get('/api/organizations/:id', async (c) => {
-    const org = new OrganizationEntity(c.env, c.req.param('id'));
-    if (!await org.exists()) return notFound(c, 'organization not found');
-    return ok(c, await org.getState());
-  });
-  app.get('/api/workspaces', async (c) => {
-    await WorkspaceEntity.ensureSeed(c.env);
-    return ok(c, await WorkspaceEntity.list(c.env));
-  });
   // BILLING
   app.get('/api/billing/:orgId', async (c) => {
     await BillingEntity.ensureSeed(c.env);
@@ -393,29 +260,41 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!billing) return notFound(c, 'billing info not found');
     return ok(c, billing);
   });
-  app.post('/api/billing/subscribe', async (c) => {
-    // Mock Stripe subscription
-    return ok(c, { sessionId: `mock-stripe-session-${crypto.randomUUID()}` });
+  // --- NEW PHASE 9 ROUTES ---
+  app.get('/api/reports/:orgId', async (c) => {
+    const orgId = c.req.param('orgId');
+    if (!await OrganizationEntity.exists(c.env, orgId)) return notFound(c, 'organization not found');
+    // Mock report data for the specific org
+    const report = MOCK_REPORTS.find(r => r.orgId === orgId);
+    return ok(c, report || { metrics: { totalRevenue: 0, subAccounts: 0, conversionRate: 0 } });
   });
-  // ROLES
-  app.get('/api/roles', async (c) => {
-    await RoleEntity.ensureSeed(c.env);
-    return ok(c, await RoleEntity.list(c.env));
+  app.get('/api/webhooks', (c) => ok(c, MOCK_WEBHOOKS));
+  app.post('/api/webhooks', async (c) => {
+    const { url, events } = await c.req.json() as { url?: string, events?: string[] };
+    if (!isStr(url) || !Array.isArray(events)) return bad(c, 'url and events are required');
+    const newWebhook = { id: `wh-${crypto.randomUUID()}`, url, events, active: true };
+    // In a real app, you'd persist this
+    MOCK_WEBHOOKS.push(newWebhook);
+    return ok(c, newWebhook);
   });
-  // DELETE: Users
-  app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));
-  app.post('/api/users/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await UserEntity.deleteMany(c.env, list), ids: list });
+  app.get('/api/api-keys', (c) => ok(c, MOCK_API_KEYS));
+  app.post('/api/api-keys', async (c) => {
+    const { userId, permissions } = await c.req.json() as { userId?: string, permissions?: string[] };
+    if (!isStr(userId) || !Array.isArray(permissions)) return bad(c, 'userId and permissions are required');
+    const newKey = { id: `key-${crypto.randomUUID()}`, userId, key: `mock-api-key-${crypto.randomUUID()}`, permissions };
+    MOCK_API_KEYS.push(newKey);
+    return ok(c, newKey);
   });
-  // DELETE: Chats
-  app.delete('/api/chats/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await ChatBoardEntity.delete(c.env, c.req.param('id')) }));
-  app.post('/api/chats/deleteMany', async (c) => {
-    const { ids } = (await c.req.json()) as { ids?: string[] };
-    const list = ids?.filter(isStr) ?? [];
-    if (list.length === 0) return bad(c, 'ids required');
-    return ok(c, { deletedCount: await ChatBoardEntity.deleteMany(c.env, list), ids: list });
+  app.post('/api/export', async (c) => {
+    const { entity } = await c.req.json() as { entity?: 'contacts' | 'deals' };
+    if (entity === 'contacts') {
+      const contacts = await ContactEntity.list(c.env);
+      return ok(c, contacts.items);
+    }
+    if (entity === 'deals') {
+      const deals = await DealEntity.list(c.env);
+      return ok(c, deals.items);
+    }
+    return bad(c, 'Invalid entity type for export');
   });
 }

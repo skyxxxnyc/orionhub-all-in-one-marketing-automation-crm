@@ -1,7 +1,7 @@
 import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role } from './types';
 export const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'User A' },
-  { id: 'u2', name: 'User B' }
+  { id: 'u1', name: 'User A', email: 'agency@orionhub.io' },
+  { id: 'u2', name: 'User B', email: 'client@orionhub.io' }
 ];
 export const MOCK_CHATS: Chat[] = [
   { id: 'c1', title: 'General' },
@@ -127,38 +127,17 @@ export const MOCK_WORKFLOWS: Workflow[] = [
       { id: 'e4-6', source: '4', target: '6', sourceHandle: 'no', label: 'No' },
     ],
   },
-  {
-    id: 'wf-2',
-    name: 'Re-engagement Campaign',
-    createdAt: Date.now() - 86400000 * 10,
-    updatedAt: Date.now() - 86400000 * 3,
-    nodes: [
-      { id: '1', type: 'custom', position: { x: 50, y: 100 }, data: { label: 'Tag Added: "Inactive"', type: 'trigger', icon: 'Tag' } },
-      { id: '2', type: 'custom', position: { x: 300, y: 100 }, data: { label: 'Send "We Miss You" Email', type: 'action', icon: 'Mail' } },
-      { id: '3', type: 'custom', position: { x: 550, y: 100 }, data: { label: 'Wait 7 Days', type: 'action', icon: 'Clock' } },
-      { id: '4', type: 'custom', position: { x: 800, y: 100 }, data: { label: 'Archive Contact', type: 'action', icon: 'Archive' } },
-    ],
-    edges: [
-      { id: 'e1-2', source: '1', target: '2', animated: true },
-      { id: 'e2-3', source: '2', target: '3', animated: true },
-      { id: 'e3-4', source: '3', target: '4', animated: true },
-    ],
-  },
 ];
 export const MOCK_EMAIL_TEMPLATES: EmailTemplate[] = [
   { id: 'et-1', name: 'Welcome Email', subject: 'Welcome to OrionHub!', body: 'Hi {{contact.name}}, thanks for joining!', mergeTags: ['contact.name'] },
   { id: 'et-2', name: 'Follow-up', subject: 'Following up on our chat', body: 'Hi {{contact.name}}, just wanted to follow up.', mergeTags: ['contact.name'] },
-  { id: 'et-3', name: 'Newsletter', subject: 'This Week in OrionHub', body: 'Check out our latest updates...', mergeTags: [] },
 ];
 export const MOCK_SMS_TEMPLATES: SMSTemplate[] = [
   { id: 'st-1', name: 'Appointment Reminder', body: 'Hi {{contact.name}}, your appointment is tomorrow at {{appointment.time}}.', mergeTags: ['contact.name', 'appointment.time'] },
-  { id: 'st-2', name: 'Promo Offer', body: 'Get 20% off with code PROMO20!', mergeTags: [] },
 ];
 export const MOCK_CAMPAIGNS: Campaign[] = [
-  { id: 'camp-1', type: 'email', name: 'Q3 Newsletter', templateId: 'et-3', status: 'sent', analytics: { sends: 1200, deliveries: 1190, opens: 450, clicks: 80 } },
-  { id: 'camp-2', type: 'sms', name: 'Black Friday Promo', templateId: 'st-2', status: 'scheduled', scheduledAt: Date.now() + 86400000 * 7, analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } },
-  { id: 'camp-3', type: 'email', name: 'Welcome Series', templateId: 'et-1', status: 'draft', analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } },
-  { id: 'camp-4', type: 'email', name: 'Re-engagement', templateId: 'et-2', status: 'sent', analytics: { sends: 500, deliveries: 490, opens: 120, clicks: 15 } },
+  { id: 'camp-1', type: 'email', name: 'Q3 Newsletter', templateId: 'et-1', status: 'sent', analytics: { sends: 1200, deliveries: 1190, opens: 450, clicks: 80 } },
+  { id: 'camp-2', type: 'sms', name: 'Black Friday Promo', templateId: 'st-1', status: 'scheduled', scheduledAt: Date.now() + 86400000 * 7, analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } },
 ];
 export const MOCK_CONVERSATIONS: Conversation[] = [
   {
@@ -168,99 +147,29 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
       { id: 'msg-1-2', from: 'user', text: 'Hi Alice, I can help with that. What would you like to know?', direction: 'out', timestamp: Date.now() - 3600000 },
     ],
   },
-  {
-    id: 'conv-2', contactId: 'contact-2', channel: 'sms', status: 'closed', lastMessageAt: Date.now() - 86400000,
-    messages: [
-      { id: 'msg-2-1', from: 'user', text: 'Your invoice is ready.', direction: 'out', timestamp: Date.now() - 86400000 * 2 },
-      { id: 'msg-2-2', from: 'Bob Williams', text: 'Thanks!', direction: 'in', timestamp: Date.now() - 86400000 },
-    ],
-  },
-  {
-    id: 'conv-3', contactId: 'contact-4', channel: 'email', status: 'open', lastMessageAt: Date.now() - 3600000 * 5,
-    messages: [
-      { id: 'msg-3-1', from: 'Diana Miller', text: 'Interested in learning more about your services.', direction: 'in', timestamp: Date.now() - 3600000 * 5 },
-    ],
-  },
 ];
 export const MOCK_PAGES: Page[] = [
   {
-    id: 'page-1',
-    name: 'SaaS Landing Page',
-    createdAt: Date.now() - 86400000 * 5,
-    analytics: { views: 10234, conversions: 876 },
-    content: [
-      { id: 'el-1', type: 'text', content: '<h1>The Future of SaaS</h1>', position: { x: 100, y: 50 } },
-      { id: 'el-2', type: 'image', content: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070', position: { x: 100, y: 150 } },
-      { id: 'el-3', type: 'button', content: 'Get Started', position: { x: 100, y: 300 } },
-    ],
-  },
-  {
-    id: 'page-2',
-    name: 'Thank You Page',
-    createdAt: Date.now() - 86400000 * 4,
-    analytics: { views: 870, conversions: 0 },
-    content: [
-      { id: 'el-4', type: 'text', content: '<h2>Thanks for signing up!</h2>', position: { x: 100, y: 50 } },
-    ],
-  },
-  {
-    id: 'page-3',
-    name: 'Upsell Offer',
-    createdAt: Date.now() - 86400000 * 3,
-    analytics: { views: 850, conversions: 120 },
-    content: [
-      { id: 'el-5', type: 'text', content: '<h3>One-Time Offer!</h3>', position: { x: 100, y: 50 } },
-      { id: 'el-6', type: 'button', content: 'Add to My Order', position: { x: 100, y: 150 } },
-    ],
+    id: 'page-1', name: 'SaaS Landing Page', createdAt: Date.now() - 86400000 * 5, analytics: { views: 10234, conversions: 876 },
+    content: [],
   },
 ];
 export const MOCK_FUNNELS: Funnel[] = [
   {
-    id: 'funnel-1',
-    name: 'Main Lead Funnel',
-    createdAt: Date.now() - 86400000 * 5,
-    steps: [
-      { id: 'step-1', pageId: 'page-1', order: 1 },
-      { id: 'step-2', pageId: 'page-2', order: 2 },
-      { id: 'step-3', pageId: 'page-3', order: 3 },
-    ],
-  },
-  {
-    id: 'funnel-2',
-    name: 'Webinar Signup Funnel',
-    createdAt: Date.now() - 86400000 * 2,
-    steps: [
-      { id: 'step-4', pageId: 'page-1', order: 1 },
-      { id: 'step-5', pageId: 'page-2', order: 2 },
-    ],
+    id: 'funnel-1', name: 'Main Lead Funnel', createdAt: Date.now() - 86400000 * 5,
+    steps: [{ id: 'step-1', pageId: 'page-1', order: 1 }],
   },
 ];
 const today = new Date();
-const setTime = (date: Date, hours: number, minutes: number) => {
-  const d = new Date(date);
-  d.setHours(hours, minutes, 0, 0);
-  return d.getTime();
-};
+const setTime = (date: Date, hours: number, minutes: number) => new Date(date).setHours(hours, minutes, 0, 0);
 export const MOCK_APPOINTMENTS: Appointment[] = [
   { id: 'appt-1', title: 'Discovery Call with Alice', start: setTime(today, 10, 0), end: setTime(today, 10, 30), contactId: 'contact-1', type: 'Discovery Call', status: 'scheduled', bufferBefore: 15, bufferAfter: 15 },
-  { id: 'appt-2', title: 'Onboarding with Bob', start: setTime(today, 14, 0), end: setTime(today, 15, 0), contactId: 'contact-2', type: 'Onboarding', status: 'scheduled', bufferBefore: 0, bufferAfter: 30 },
-  { id: 'appt-3', title: 'Project Kickoff', start: setTime(new Date(today.getTime() + 86400000), 11, 0), end: setTime(new Date(today.getTime() + 86400000), 12, 0), contactId: 'contact-4', type: 'Meeting', status: 'scheduled', bufferBefore: 15, bufferAfter: 0 },
-  { id: 'appt-4', title: 'Follow-up with Charlie', start: setTime(new Date(today.getTime() + 86400000 * 2), 9, 30), end: setTime(new Date(today.getTime() + 86400000 * 2), 10, 0), contactId: 'contact-3', type: 'Follow-up', status: 'completed', bufferBefore: 0, bufferAfter: 0 },
-  { id: 'appt-5', title: 'Demo for Growth Partners', start: setTime(new Date(today.getTime() - 86400000), 16, 0), end: setTime(new Date(today.getTime() - 86400000), 16, 45), contactId: 'contact-4', type: 'Demo', status: 'cancelled', bufferBefore: 15, bufferAfter: 15 },
 ];
 export const MOCK_AVAILABILITIES: Availability[] = [
-  { id: 'avail-1', userId: 'u1', dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }, // Monday
-  { id: 'avail-2', userId: 'u1', dayOfWeek: 2, startTime: '09:00', endTime: '17:00' }, // Tuesday
-  { id: 'avail-3', userId: 'u1', dayOfWeek: 3, startTime: '09:00', endTime: '17:00' }, // Wednesday
-  { id: 'avail-4', userId: 'u1', dayOfWeek: 4, startTime: '09:00', endTime: '17:00' }, // Thursday
-  { id: 'avail-5', userId: 'u1', dayOfWeek: 5, startTime: '09:00', endTime: '17:00' }, // Friday
+  { id: 'avail-1', userId: 'u1', dayOfWeek: 1, startTime: '09:00', endTime: '17:00' },
 ];
 export const MOCK_CALENDAR_EVENTS: CalendarEvent[] = MOCK_APPOINTMENTS.filter(a => a.status === 'scheduled').map(a => ({
-  id: a.id,
-  title: a.title,
-  start: a.start,
-  end: a.end,
-  color: a.type === 'Discovery Call' ? '#3b82f6' : '#8b5cf6',
+  id: a.id, title: a.title, start: a.start, end: a.end, color: '#3b82f6',
 }));
 export const MOCK_INTEGRATIONS: Integration[] = [
   { id: 'int-1', type: 'google', status: 'connected', syncToken: 'sync-token-123' },
@@ -273,7 +182,7 @@ export const MOCK_ORGANIZATIONS: Organization[] = [
 ];
 export const MOCK_WORKSPACES: Workspace[] = [
   { id: 'ws-1', orgId: 'org-1', name: 'Agency Workspace', users: ['u1'], permissions: { 'u1': 'admin' } },
-  { id: 'ws-2', orgId: 'org-1', name: 'Innovate Inc. (Sub-account)', users: ['u1', 'u2'], permissions: { 'u1': 'admin', 'u2': 'client' } },
+  { id: 'ws-2', orgId: 'org-1', name: 'Innovate Inc. (Sub-account)', users: ['u1', 'u2'], permissions: { 'u1': 'admin', 'u2': 'read' } },
   { id: 'ws-3', orgId: 'org-1', name: 'Solutions Co. (Sub-account)', users: ['u1'], permissions: { 'u1': 'admin' } },
   { id: 'ws-4', orgId: 'org-2', name: 'Main Workspace', users: ['u2'], permissions: { 'u2': 'admin' } },
   { id: 'ws-5', orgId: 'org-3', name: 'Main Workspace', users: ['u2'], permissions: { 'u2': 'admin' } },
@@ -281,11 +190,18 @@ export const MOCK_WORKSPACES: Workspace[] = [
 export const MOCK_BILLING: Billing[] = [
   { id: 'bill-1', orgId: 'org-1', plan: 'enterprise', status: 'active', usage: { contacts: 5000, campaigns: 150 }, nextInvoice: Date.now() + 86400000 * 15 },
   { id: 'bill-2', orgId: 'org-2', plan: 'pro', status: 'active', usage: { contacts: 800, campaigns: 25 }, nextInvoice: Date.now() + 86400000 * 10 },
-  { id: 'bill-3', orgId: 'org-3', plan: 'pro', status: 'past_due', usage: { contacts: 1200, campaigns: 40 }, nextInvoice: Date.now() - 86400000 * 5 },
-  { id: 'bill-4', orgId: 'org-4', plan: 'free', status: 'active', usage: { contacts: 50, campaigns: 2 }, nextInvoice: 0 },
 ];
 export const MOCK_ROLES: Role[] = [
   { id: 'role-1', name: 'admin', permissions: ['*:*'] },
   { id: 'role-2', name: 'user', permissions: ['contacts:read', 'contacts:write', 'campaigns:read'] },
   { id: 'role-3', name: 'client', permissions: ['dashboard:read', 'contacts:read'] },
+];
+export const MOCK_REPORTS = [
+  { id: 'report-1', orgId: 'org-1', metrics: { totalRevenue: 1250, subAccounts: 3, conversionRate: 24.5 }, dateRange: { start: Date.now() - 86400000 * 30, end: Date.now() } }
+];
+export const MOCK_WEBHOOKS = [
+  { id: 'wh-1', url: 'https://example.com/webhook', events: ['contact.created'], active: true }
+];
+export const MOCK_API_KEYS = [
+  { id: 'key-1', userId: 'u1', key: 'mock-api-key-123', permissions: ['contacts:read'] }
 ];

@@ -21,7 +21,7 @@ interface AuthState {
   switchOrganization: (orgId: string) => void;
   switchWorkspace: (workspaceId: string) => void;
 }
-const getInitialState = () => {
+const getInitialStateFromLocalStorage = () => {
   try {
     const token = localStorage.getItem(MOCK_TOKEN_KEY);
     const userJson = localStorage.getItem(MOCK_USER_KEY);
@@ -32,11 +32,12 @@ const getInitialState = () => {
     const currentWorkspace = wsJson ? JSON.parse(wsJson) : null;
     return { token, user, currentOrg, currentWorkspace, isAuthenticated: !!token && !!user };
   } catch (error) {
+    console.error("Failed to parse auth state from localStorage", error);
     return { token: null, user: null, currentOrg: null, currentWorkspace: null, isAuthenticated: false };
   }
 };
 export const useAuthStore = create<AuthState>((set, get) => ({
-  ...getInitialState(),
+  ...getInitialStateFromLocalStorage(),
   isLoading: true,
   organizations: [],
   workspaces: [],
@@ -45,7 +46,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       setTimeout(() => {
         const user: User = { id: 'u1', name: 'Demo User', email };
         const token = `mock-token-${Date.now()}`;
-        // Mock fetching orgs and workspaces for this user
         const userOrgs = MOCK_ORGANIZATIONS.filter(o => o.ownerId === user.id);
         const currentOrg = userOrgs[0] || null;
         const userWorkspaces = MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg?.id);
@@ -70,7 +70,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       setTimeout(() => {
         const user: User = { id: crypto.randomUUID(), name, email };
         const token = `mock-token-${Date.now()}`;
-        // Mock creating a new org and workspace
         const newOrg: Organization = { id: `org-${crypto.randomUUID()}`, name: `${name}'s Org`, type: 'client', branding: {}, workspaces: [`ws-${crypto.randomUUID()}`], ownerId: user.id, createdAt: Date.now() };
         const newWs: Workspace = { id: newOrg.workspaces[0], orgId: newOrg.id, name: 'Main Workspace', users: [user.id], permissions: { [user.id]: 'admin' } };
         localStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
@@ -93,10 +92,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem(MOCK_TOKEN_KEY);
     localStorage.removeItem(MOCK_ORG_KEY);
     localStorage.removeItem(MOCK_WS_KEY);
-    set({ user: null, token: null, isAuthenticated: false, currentOrg: null, currentWorkspace: null, organizations: [], workspaces: [] });
+    set({ user: null, token: null, isAuthenticated: false, currentOrg: null, currentWorkspace: null, organizations: [], workspaces: [], isLoading: false });
   },
   checkAuth: () => {
-    const { token, user, currentOrg, currentWorkspace } = getInitialState();
+    const { token, user, currentOrg, currentWorkspace } = getInitialStateFromLocalStorage();
     const userOrgs = user ? MOCK_ORGANIZATIONS.filter(o => o.ownerId === user.id || o.workspaces.some(wsId => MOCK_WORKSPACES.find(ws => ws.id === wsId)?.users.includes(user.id))) : [];
     const userWorkspaces = currentOrg ? MOCK_WORKSPACES.filter(ws => ws.orgId === currentOrg.id) : [];
     set({
@@ -107,7 +106,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
   switchOrganization: (orgId: string) => {
-    const { organizations } = get().getState();
+    const { organizations } = get();
     const newOrg = organizations.find(o => o.id === orgId);
     if (newOrg) {
       const newWorkspaces = MOCK_WORKSPACES.filter(ws => ws.orgId === newOrg.id);
@@ -122,7 +121,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
   switchWorkspace: (workspaceId: string) => {
-    const { workspaces } = get().getState();
+    const { workspaces } = get();
     const newWorkspace = workspaces.find(ws => ws.id === workspaceId);
     if (newWorkspace) {
       localStorage.setItem(MOCK_WS_KEY, JSON.stringify(newWorkspace));
@@ -130,5 +129,3 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
-// Call checkAuth on initial load
-useAuthStore.getState().checkAuth();
