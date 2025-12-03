@@ -28,7 +28,7 @@ export function TemplateLibrary({ type, onSelect }: TemplateLibraryProps) {
                 {'subject' in template && <CardDescription>{template.subject}</CardDescription>}
               </CardHeader>
               <CardContent>
-                <p className={cn("text-sm text-muted-foreground line-clamp-2")}>{template.body}</p>
+                <div className={cn("text-sm text-muted-foreground line-clamp-2")}>{template.body}</div>
               </CardContent>
             </Card>
           </motion.div>

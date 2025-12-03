@@ -182,3 +182,39 @@ export interface Integration {
   status: 'connected' | 'disconnected';
   syncToken?: string;
 }
+// Multi-Tenant & Admin Types
+export interface Organization {
+  id: string;
+  name: string;
+  type: 'agency' | 'client';
+  branding: {
+    logo?: string;
+    colors?: Record<string, string>;
+  };
+  workspaces: string[];
+  ownerId: string;
+  createdAt: number;
+}
+export interface Workspace {
+  id: string;
+  orgId: string;
+  name: string;
+  users: string[]; // user IDs
+  permissions: Record<string, 'read' | 'write' | 'admin'>; // { [userId]: permission }
+}
+export interface Billing {
+  id: string;
+  orgId: string;
+  plan: 'free' | 'pro' | 'enterprise';
+  status: 'active' | 'past_due' | 'cancelled';
+  usage: {
+    contacts: number;
+    campaigns: number;
+  };
+  nextInvoice: number; // epoch millis
+}
+export interface Role {
+  id: string;
+  name: 'admin' | 'user' | 'client';
+  permissions: string[]; // e.g., ['contacts:write', 'billing:read']
+}

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
-import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration } from "@shared/types";
+import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -370,6 +370,37 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const entity = new IntegrationEntity(c.env, integration.id);
     await entity.connect();
     return ok(c, { success: true, message: `${type} connected` });
+  });
+  // ORGANIZATIONS & WORKSPACES
+  app.get('/api/organizations', async (c) => {
+    await OrganizationEntity.ensureSeed(c.env);
+    return ok(c, await OrganizationEntity.list(c.env));
+  });
+  app.get('/api/organizations/:id', async (c) => {
+    const org = new OrganizationEntity(c.env, c.req.param('id'));
+    if (!await org.exists()) return notFound(c, 'organization not found');
+    return ok(c, await org.getState());
+  });
+  app.get('/api/workspaces', async (c) => {
+    await WorkspaceEntity.ensureSeed(c.env);
+    return ok(c, await WorkspaceEntity.list(c.env));
+  });
+  // BILLING
+  app.get('/api/billing/:orgId', async (c) => {
+    await BillingEntity.ensureSeed(c.env);
+    const all = (await BillingEntity.list(c.env)).items;
+    const billing = all.find(b => b.orgId === c.req.param('orgId'));
+    if (!billing) return notFound(c, 'billing info not found');
+    return ok(c, billing);
+  });
+  app.post('/api/billing/subscribe', async (c) => {
+    // Mock Stripe subscription
+    return ok(c, { sessionId: `mock-stripe-session-${crypto.randomUUID()}` });
+  });
+  // ROLES
+  app.get('/api/roles', async (c) => {
+    await RoleEntity.ensureSeed(c.env);
+    return ok(c, await RoleEntity.list(c.env));
   });
   // DELETE: Users
   app.delete('/api/users/:id', async (c) => ok(c, { id: c.req.param('id'), deleted: await UserEntity.delete(c.env, c.req.param('id')) }));

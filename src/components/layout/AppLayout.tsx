@@ -2,14 +2,20 @@ import React from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
-import { Search } from "lucide-react";
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Search, ChevronsUpDown } from "lucide-react";
+import { useAuthStore } from "@/lib/mock-auth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "../ui/button";
 type AppLayoutProps = {
   children: React.ReactNode;
   className?: string;
 };
 export function AppLayout({ children, className }: AppLayoutProps): JSX.Element {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
+  const currentWorkspace = useAuthStore((state) => state.currentWorkspace);
+  const workspaces = useAuthStore((state) => state.workspaces);
+  const switchWorkspace = useAuthStore((state) => state.switchWorkspace);
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -26,11 +32,28 @@ export function AppLayout({ children, className }: AppLayoutProps): JSX.Element 
       <SidebarInset className={className}>
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
           <SidebarTrigger />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-[200px] justify-between">
+                {currentWorkspace?.name || "Select Workspace"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[200px]">
+              <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {workspaces.map(ws => (
+                <DropdownMenuItem key={ws.id} onSelect={() => switchWorkspace(ws.id)}>
+                  {ws.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <CommandInput 
-              onClick={() => setOpen(true)} 
-              placeholder="Search..." 
+            <CommandInput
+              onClick={() => setOpen(true)}
+              placeholder="Search..."
               className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
             />
           </div>

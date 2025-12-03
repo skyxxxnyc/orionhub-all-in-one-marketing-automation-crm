@@ -2,8 +2,8 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role } from "@shared/types";
+import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -258,4 +258,51 @@ export class IntegrationEntity extends IndexedEntity<Integration> {
   async disconnect(): Promise<Integration> {
     return this.mutate(s => ({ ...s, status: 'disconnected', syncToken: undefined }));
   }
+}
+// ORGANIZATION ENTITY
+export class OrganizationEntity extends IndexedEntity<Organization> {
+  static readonly entityName = "organization";
+  static readonly indexName = "organizations";
+  static readonly initialState: Organization = { id: "", name: "", type: "client", branding: {}, workspaces: [], ownerId: "", createdAt: 0 };
+  static seedData = MOCK_ORGANIZATIONS;
+  async addWorkspace(workspaceId: string): Promise<Organization> {
+    return this.mutate(s => ({ ...s, workspaces: [...s.workspaces, workspaceId] }));
+  }
+  async updateBranding(branding: Organization['branding']): Promise<Organization> {
+    return this.mutate(s => ({ ...s, branding }));
+  }
+}
+// WORKSPACE ENTITY
+export class WorkspaceEntity extends IndexedEntity<Workspace> {
+  static readonly entityName = "workspace";
+  static readonly indexName = "workspaces";
+  static readonly initialState: Workspace = { id: "", orgId: "", name: "", users: [], permissions: {} };
+  static seedData = MOCK_WORKSPACES;
+  async addUser(userId: string, permission: 'read' | 'write' | 'admin'): Promise<Workspace> {
+    return this.mutate(s => ({
+      ...s,
+      users: [...new Set([...s.users, userId])],
+      permissions: { ...s.permissions, [userId]: permission },
+    }));
+  }
+}
+// BILLING ENTITY
+export class BillingEntity extends IndexedEntity<Billing> {
+  static readonly entityName = "billing";
+  static readonly indexName = "billings";
+  static readonly initialState: Billing = { id: "", orgId: "", plan: "free", status: "active", usage: { contacts: 0, campaigns: 0 }, nextInvoice: 0 };
+  static seedData = MOCK_BILLING;
+  async updateUsage(type: 'contacts' | 'campaigns', count: number): Promise<Billing> {
+    return this.mutate(s => ({
+      ...s,
+      usage: { ...s.usage, [type]: s.usage[type] + count },
+    }));
+  }
+}
+// ROLE ENTITY
+export class RoleEntity extends IndexedEntity<Role> {
+  static readonly entityName = "role";
+  static readonly indexName = "roles";
+  static readonly initialState: Role = { id: "", name: "user", permissions: [] };
+  static seedData = MOCK_ROLES;
 }
