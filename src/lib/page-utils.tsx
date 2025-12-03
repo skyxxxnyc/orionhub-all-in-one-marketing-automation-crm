@@ -12,9 +12,8 @@
  * - Keeps typesafe interfaces referencing shared types where available.
  */
 import { Button } from '@/components/ui/button';
-import { Link as LucideLink } from 'lucide-react';
 import clsx from 'clsx';
-import type { PageElement as SharedPageElement, SeoMeta as SharedSeoMeta } from '@shared/types';
+import type { PageElement as SharedPageElement } from '@shared/types';
 /**
  * Local fallback types in case the shared types differ slightly.
  * These are compatible with the expected shape used by the functions below.
@@ -25,7 +24,7 @@ export type PageElement = SharedPageElement & {
   props?: Record<string, any>;
   children?: PageElement[] | string;
 };
-export type SeoMeta = SharedSeoMeta & {
+export type SeoMeta = {
   title?: string;
   description?: string;
   keywords?: string | string[];
@@ -64,19 +63,23 @@ function escapeHtml(str: string) {
  */
 export function GenericElement({
   element,
+  data,
   className,
   onClick,
 }: {
-  element: PageElement;
+  element?: PageElement;
+  data?: PageElement;
   className?: string;
   onClick?: (e: MouseEvent, el: PageElement) => void;
 }) {
-  const type = (element?.type || 'text').toLowerCase();
-  const props = element?.props || {};
+  const el = element ?? data;
+  if (!el) return null;
+  const type = (el?.type || 'text').toLowerCase();
+  const props = el?.props || {};
   const baseClass = clsx('generic-element', className, props.className);
   const handleClick = (e: React.MouseEvent) => {
     try {
-      onClick?.(e as unknown as MouseEvent, element);
+      onClick?.(e as unknown as MouseEvent, el);
     } catch (err) {
       // Fail silently in UI; caller may attach richer error handling
       // eslint-disable-next-line no-console
@@ -85,11 +88,11 @@ export function GenericElement({
   };
   switch (type) {
     case 'text': {
-      const content = typeof element.children === 'string' ? element.children : props.text || '';
+      const content = typeof el.children === 'string' ? el.children : props.text || '';
       if (props.allowHtml) {
         return (
           <div
-            id={element.id}
+            id={el.id}
             className={baseClass}
             dangerouslySetInnerHTML={{ __html: String(content) }}
             onClick={handleClick}
@@ -97,7 +100,7 @@ export function GenericElement({
         );
       }
       return (
-        <p id={element.id} className={baseClass} onClick={handleClick}>
+        <p id={el.id} className={baseClass} onClick={handleClick}>
           {String(content)}
         </p>
       );
@@ -108,9 +111,8 @@ export function GenericElement({
       const width = props.width ? Number(props.width) : undefined;
       const height = props.height ? Number(props.height) : undefined;
       return (
-        // eslint-disable-next-line jsx-a11y/img-redundant-alt
         <img
-          id={element.id}
+          id={el.id}
           className={baseClass}
           src={src}
           alt={String(alt)}
@@ -123,13 +125,13 @@ export function GenericElement({
       );
     }
     case 'button': {
-      const label = props.label || (typeof element.children === 'string' ? element.children : 'Click');
+      const label = props.label || (typeof el.children === 'string' ? el.children : 'Click');
       const href = props.href;
       const disabled = Boolean(props.disabled);
       const variant = props.variant || 'default';
       const button = (
         <Button
-          id={element.id}
+          id={el.id}
           className={baseClass}
           onClick={handleClick as unknown as React.MouseEventHandler<HTMLButtonElement>}
           disabled={disabled}
@@ -141,7 +143,7 @@ export function GenericElement({
       if (href) {
         const target = props.target || '_self';
         return (
-          <a id={`${element.id || ''}-link`} href={href} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined}>
+          <a id={`${el.id || ''}-link`} href={href} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined}>
             {button}
           </a>
         );
@@ -149,9 +151,9 @@ export function GenericElement({
       return button;
     }
     case 'container': {
-      const children = Array.isArray(element.children) ? element.children : [];
+      const children = Array.isArray(el.children) ? el.children : [];
       return (
-        <div id={element.id} className={baseClass} onClick={handleClick}>
+        <div id={el.id} className={baseClass} onClick={handleClick}>
           {Array.isArray(children)
             ? children.map((child, idx) => <GenericElement key={child.id ?? idx} element={child} />)
             : null}
@@ -163,7 +165,7 @@ export function GenericElement({
       const html = props.html || '';
       return (
         <div
-          id={element.id}
+          id={el.id}
           className={baseClass}
           dangerouslySetInnerHTML={{ __html: String(html) }}
           onClick={handleClick}
@@ -173,7 +175,7 @@ export function GenericElement({
     default: {
       // Fallback renderer: show JSON for debugging/editing
       return (
-        <div id={element.id} className={baseClass} onClick={handleClick} title={`type: ${type}`}>
+        <div id={el.id} className={baseClass} onClick={handleClick} title={`type: ${type}`}>
           <pre className="whitespace-pre-wrap text-xs">{JSON.stringify({ type, props }, null, 2)}</pre>
         </div>
       );
@@ -278,8 +280,3 @@ export function generateEmbedCode(element: PageElement, opts?: { siteUrl?: strin
     }
   }
 }
-export default {
-  GenericElement,
-  generateMetaTags,
-  generateEmbedCode,
-};

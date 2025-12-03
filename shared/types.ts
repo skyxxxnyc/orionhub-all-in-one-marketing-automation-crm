@@ -60,7 +60,7 @@ export interface Pipeline {
   deals: Deal[]; // This is for API responses, not stored directly in PipelineEntity
 }
 // Workflow types
-export type NodeType = 'trigger' | 'action' | 'condition';
+export type NodeType = 'trigger' | 'action' | 'condition' | 'end';
 export interface NodeData {
   label: string;
   type: NodeType;
