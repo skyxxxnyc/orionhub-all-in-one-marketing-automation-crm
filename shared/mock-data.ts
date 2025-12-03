@@ -1,4 +1,4 @@
-import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration } from './types';
+import type { User, Chat, ChatMessage, Contact, Deal, Pipeline, Workflow, EmailTemplate, SMSTemplate, Campaign, Conversation, Page, Funnel, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role } from './types';
 export const MOCK_USERS: User[] = [
   { id: 'u1', name: 'User A' },
   { id: 'u2', name: 'User B' }
@@ -265,4 +265,27 @@ export const MOCK_CALENDAR_EVENTS: CalendarEvent[] = MOCK_APPOINTMENTS.filter(a 
 export const MOCK_INTEGRATIONS: Integration[] = [
   { id: 'int-1', type: 'google', status: 'connected', syncToken: 'sync-token-123' },
   { id: 'int-2', type: 'outlook', status: 'disconnected' },
+];
+export const MOCK_ORGANIZATIONS: Organization[] = [
+  { id: 'org-1', name: 'Orion Digital Agency', type: 'agency', branding: { logo: '/logo-orion.png', colors: { primary: '#F38020' } }, workspaces: ['ws-1', 'ws-2', 'ws-3'], ownerId: 'u1', createdAt: Date.now() - 86400000 * 30 },
+  { id: 'org-2', name: 'Innovate Inc.', type: 'client', branding: {}, workspaces: ['ws-4'], ownerId: 'u2', createdAt: Date.now() - 86400000 * 10 },
+  { id: 'org-3', name: 'Solutions Co.', type: 'client', branding: {}, workspaces: ['ws-5'], ownerId: 'u2', createdAt: Date.now() - 86400000 * 5 },
+];
+export const MOCK_WORKSPACES: Workspace[] = [
+  { id: 'ws-1', orgId: 'org-1', name: 'Agency Workspace', users: ['u1'], permissions: { 'u1': 'admin' } },
+  { id: 'ws-2', orgId: 'org-1', name: 'Innovate Inc. (Sub-account)', users: ['u1', 'u2'], permissions: { 'u1': 'admin', 'u2': 'client' } },
+  { id: 'ws-3', orgId: 'org-1', name: 'Solutions Co. (Sub-account)', users: ['u1'], permissions: { 'u1': 'admin' } },
+  { id: 'ws-4', orgId: 'org-2', name: 'Main Workspace', users: ['u2'], permissions: { 'u2': 'admin' } },
+  { id: 'ws-5', orgId: 'org-3', name: 'Main Workspace', users: ['u2'], permissions: { 'u2': 'admin' } },
+];
+export const MOCK_BILLING: Billing[] = [
+  { id: 'bill-1', orgId: 'org-1', plan: 'enterprise', status: 'active', usage: { contacts: 5000, campaigns: 150 }, nextInvoice: Date.now() + 86400000 * 15 },
+  { id: 'bill-2', orgId: 'org-2', plan: 'pro', status: 'active', usage: { contacts: 800, campaigns: 25 }, nextInvoice: Date.now() + 86400000 * 10 },
+  { id: 'bill-3', orgId: 'org-3', plan: 'pro', status: 'past_due', usage: { contacts: 1200, campaigns: 40 }, nextInvoice: Date.now() - 86400000 * 5 },
+  { id: 'bill-4', orgId: 'org-4', plan: 'free', status: 'active', usage: { contacts: 50, campaigns: 2 }, nextInvoice: 0 },
+];
+export const MOCK_ROLES: Role[] = [
+  { id: 'role-1', name: 'admin', permissions: ['*:*'] },
+  { id: 'role-2', name: 'user', permissions: ['contacts:read', 'contacts:write', 'campaigns:read'] },
+  { id: 'role-3', name: 'client', permissions: ['dashboard:read', 'contacts:read'] },
 ];
