@@ -44,8 +44,8 @@ export function GenericElement({
   const el = element ?? data;
   if (!el) return null;
   const type = (el?.type || 'text').toLowerCase();
-  const props = el?.props || {};
-  const baseClass = clsx('generic-element', className, props.className);
+  const config = el?.config || {};
+  const baseClass = clsx('generic-element', className, config.className);
   const handleClick = (e: React.MouseEvent) => {
     try {
       onClick?.(e as unknown as MouseEvent, el);
@@ -57,8 +57,8 @@ export function GenericElement({
   };
   switch (type) {
     case 'text': {
-      const content = typeof el.children === 'string' ? el.children : props.text || '';
-      if (props.allowHtml) {
+      const content = typeof el.content === 'string' ? el.content : config.text || '';
+      if (config.allowHtml) {
         return (
           <div
             id={el.id}
@@ -75,10 +75,10 @@ export function GenericElement({
       );
     }
     case 'image': {
-      const src = props.src || '';
-      const alt = props.alt || props.title || '';
-      const width = props.width ? Number(props.width) : undefined;
-      const height = props.height ? Number(props.height) : undefined;
+      const src = config.src || '';
+      const alt = config.alt || config.title || '';
+      const width = config.width ? Number(config.width) : undefined;
+      const height = config.height ? Number(config.height) : undefined;
       return (
         <img
           id={el.id}
@@ -87,17 +87,17 @@ export function GenericElement({
           alt={String(alt)}
           width={width}
           height={height}
-          loading={props.loading || 'lazy'}
+          loading={config.loading || 'lazy'}
           onClick={handleClick}
-          style={props.style}
+          style={config.style}
         />
       );
     }
     case 'button': {
-      const label = props.label || (typeof el.children === 'string' ? el.children : 'Click');
-      const href = props.href;
-      const disabled = Boolean(props.disabled);
-      const variant = props.variant || 'default';
+      const label = config.label || (typeof el.content === 'string' ? el.content : 'Click');
+      const href = config.href;
+      const disabled = Boolean(config.disabled);
+      const variant = config.variant || 'default';
       const button = (
         <Button
           id={el.id}
@@ -110,7 +110,7 @@ export function GenericElement({
         </Button>
       );
       if (href) {
-        const target = props.target || '_self';
+        const target = config.target || '_self';
         return (
           <a id={`${el.id || ''}-link`} href={href} target={target} rel={target === '_blank' ? 'noopener noreferrer' : undefined}>
             {button}
@@ -120,7 +120,7 @@ export function GenericElement({
       return button;
     }
     case 'container': {
-      const children = Array.isArray(el.children) ? el.children : [];
+      const children = Array.isArray(el.content) ? el.content : [];
       return (
         <div id={el.id} className={baseClass} onClick={handleClick}>
           {Array.isArray(children)
@@ -131,7 +131,7 @@ export function GenericElement({
     }
     case 'html': {
       // Inline raw HTML block - opt-in only
-      const html = props.html || '';
+      const html = config.html || '';
       return (
         <div
           id={el.id}
@@ -145,7 +145,7 @@ export function GenericElement({
       // Fallback renderer: show JSON for debugging/editing
       return (
         <div id={el.id} className={baseClass} onClick={handleClick} title={`type: ${type}`}>
-          <pre className="whitespace-pre-wrap text-xs">{JSON.stringify({ type, props }, null, 2)}</pre>
+          <pre className="whitespace-pre-wrap text-xs">{JSON.stringify({ type, config }, null, 2)}</pre>
         </div>
       );
     }
