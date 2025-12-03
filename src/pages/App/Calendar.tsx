@@ -11,6 +11,7 @@ import { api } from '@/lib/api-client';
 import type { CalendarEvent } from '@shared/types';
 import { AppointmentDetail } from '@/components/AppointmentDetail';
 import { BookingWidget } from '@/components/BookingWidget';
+import { OnboardingTooltip } from '@/components/OnboardingTooltip';
 const fetchEvents = async (start: Date, end: Date) => {
   // In a real app, you'd pass start/end to the API
   // For this mock, we fetch all and filter client-side
@@ -54,17 +55,19 @@ export function Calendar() {
             <h1 className="text-3xl font-bold text-foreground">Calendar</h1>
             <p className="text-muted-foreground">Manage your appointments and schedule.</p>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button><PlusCircle className="mr-2 h-4 w-4" /> New Appointment</Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Book an Appointment</SheetTitle>
-              </SheetHeader>
-              <BookingWidget />
-            </SheetContent>
-          </Sheet>
+          <OnboardingTooltip tourId="new-appointment" content="Schedule your first appointment.">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button><PlusCircle className="mr-2 h-4 w-4" /> New Appointment</Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Book an Appointment</SheetTitle>
+                </SheetHeader>
+                <BookingWidget />
+              </SheetContent>
+            </Sheet>
+          </OnboardingTooltip>
         </div>
         <Card>
           <CardContent className="p-4">
@@ -85,11 +88,16 @@ export function Calendar() {
                   {format(day, 'EEE')}
                 </div>
               ))}
-              {days.map((day, dayIdx) => {
+              {days.map((day) => {
                 const dayKey = format(day, 'yyyy-MM-dd');
                 const dayEvents = eventsByDay.get(dayKey) || [];
                 return (
-                  <div key={day.toString()} className="relative min-h-[120px] border-b border-r p-2 flex flex-col gap-1">
+                  <div
+                    key={day.toString()}
+                    className="relative min-h-[120px] border-b border-r p-2 flex flex-col gap-1"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && dayEvents.length > 0 && setSelectedEvent(dayEvents[0])}
+                  >
                     <span className="font-semibold">{format(day, 'd')}</span>
                     {isLoading ? (
                       <Skeleton className="h-5 w-full rounded" />
@@ -100,6 +108,7 @@ export function Calendar() {
                           layoutId={event.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
+                          whileHover={{ scale: 1.02 }}
                           className="p-1.5 rounded-md text-xs cursor-pointer hover:opacity-80"
                           style={{ backgroundColor: event.color }}
                           onClick={() => setSelectedEvent(event)}

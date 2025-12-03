@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlusCircle, Play, Save, Workflow as WorkflowIcon, Pause, StopCircle, Undo, Redo, Share2 } from 'lucide-react';
+import { PlusCircle, Save, Undo, Redo, Share2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ import { WorkflowAnalytics } from '@/components/WorkflowAnalytics';
 import { WorkflowTestingPanel } from '@/components/WorkflowTestingPanel';
 import { WorkflowJourneyViewer } from '@/components/WorkflowJourneyViewer';
 import { OnboardingTooltip } from '@/components/OnboardingTooltip';
+import { motion } from 'framer-motion';
 const fetchWorkflows = async () => api<{ items: Workflow[] }>('/api/workflows');
 const nodeTypes: NodeTypes = { custom: CustomNode };
 export function Automations() {
@@ -90,9 +91,10 @@ export function Automations() {
               nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
               onConnect={onConnect} onNodeClick={onNodeClick} onPaneClick={onPaneClick}
               nodeTypes={nodeTypes} fitView
+              aria-label="Workflow builder canvas" role="application"
             >
               <Controls />
-              <MiniMap />
+              <MiniMap aria-hidden="true" />
               <Background />
             </ReactFlow>
           </div>
@@ -167,12 +169,17 @@ export function Automations() {
                   ))
                 ) : (
                   data?.items.map((workflow) => (
-                    <TableRow key={workflow.id} onClick={() => handleSelectWorkflow(workflow)} className="cursor-pointer hover:bg-muted/50">
+                    <motion.tr
+                      key={workflow.id}
+                      onClick={() => handleSelectWorkflow(workflow)}
+                      className="cursor-pointer hover:bg-muted/50"
+                      whileHover={{ scale: 1.01 }}
+                    >
                       <TableCell className="font-medium">{workflow.name}</TableCell>
                       <TableCell><Badge>Active</Badge></TableCell>
                       <TableCell>1,234</TableCell>
                       <TableCell>92%</TableCell>
-                    </TableRow>
+                    </motion.tr>
                   ))
                 )}
               </TableBody>

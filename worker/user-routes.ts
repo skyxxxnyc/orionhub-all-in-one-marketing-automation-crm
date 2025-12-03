@@ -138,6 +138,27 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const resolved = await ticket.resolve();
     return ok(c, resolved);
   });
+  // Export Route
+  app.get('/api/:entity/export', async (c) => {
+    const { entity } = c.req.param();
+    const { from, to, format = 'json', limit = '1000' } = c.req.query();
+    // TODO: Add RBAC check for export permissions
+    const EntityMap = {
+      contacts: ContactEntity,
+      deals: DealEntity,
+      workflows: WorkflowEntity,
+      campaigns: CampaignEntity,
+      appointments: AppointmentEntity,
+    };
+    const EntityClass = EntityMap[entity as keyof typeof EntityMap];
+    if (!EntityClass) {
+      return bad(c, 'Invalid entity type for export');
+    }
+    const { items } = await EntityClass.list(c.env, null, parseInt(limit, 10));
+    // TODO: Add date filtering based on `from` and `to` query params
+    // For now, returning all items for the mock
+    return ok(c, items);
+  });
   // Other routes...
   app.get('/api/campaigns', async (c) => { await CampaignEntity.ensureSeed(c.env); return ok(c, await CampaignEntity.list(c.env)); });
   app.get('/api/inbox', async (c) => { await ConversationEntity.ensureSeed(c.env); return ok(c, await ConversationEntity.list(c.env)); });

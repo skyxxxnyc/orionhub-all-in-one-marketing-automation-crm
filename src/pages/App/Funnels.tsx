@@ -1,20 +1,19 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlusCircle, MoreHorizontal, Globe, Code } from 'lucide-react';
-import { toast } from 'sonner';
+import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import type { Funnel } from '@shared/types';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { FunnelSequencer } from '@/components/FunnelSequencer';
+import { OnboardingTooltip } from '@/components/OnboardingTooltip';
+import { motion } from 'framer-motion';
 const fetchFunnels = async () => api<{ items: Funnel[] }>('/api/funnels');
 export function Funnels() {
   const navigate = useNavigate();
@@ -32,7 +31,9 @@ export function Funnels() {
             <h1 className="text-3xl font-bold text-foreground">Funnels & Pages</h1>
             <p className="text-muted-foreground">Build and manage your marketing funnels and landing pages.</p>
           </div>
-          <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
+          <OnboardingTooltip tourId="new-funnel" content="Build a new marketing funnel to capture leads.">
+            <Button><PlusCircle className="mr-2 h-4 w-4" /> New Funnel</Button>
+          </OnboardingTooltip>
         </div>
         <Card>
           <CardContent>
@@ -59,7 +60,11 @@ export function Funnels() {
                   ))
                 ) : funnels.length > 0 ? (
                   funnels.map((funnel) => (
-                    <TableRow key={funnel.id} className="cursor-pointer">
+                    <motion.tr
+                      key={funnel.id}
+                      className="cursor-pointer"
+                      whileHover={{ scale: 1.01 }}
+                    >
                       <TableCell className="font-medium" onClick={() => navigate(`/app/funnels/${funnel.id}`)}>{funnel.name}</TableCell>
                       <TableCell onClick={() => setSequencerOpen(funnel)}>{funnel.steps.length}</TableCell>
                       <TableCell>{format(new Date(funnel.createdAt), 'PP')}</TableCell>
@@ -79,7 +84,7 @@ export function Funnels() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                    </TableRow>
+                    </motion.tr>
                   ))
                 ) : (
                   <TableRow>
