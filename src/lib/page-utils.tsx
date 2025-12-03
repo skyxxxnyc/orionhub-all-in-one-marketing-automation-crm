@@ -13,40 +13,9 @@
  */
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
-import type { PageElement as SharedPageElement } from '@shared/types';
-/**
- * Local fallback types in case the shared types differ slightly.
- * These are compatible with the expected shape used by the functions below.
- */
-export type PageElement = SharedPageElement & {
-  id?: string;
-  type: string;
-  props?: Record<string, any>;
-  children?: PageElement[] | string;
-};
-export type SeoMeta = {
-  title?: string;
-  description?: string;
-  keywords?: string | string[];
-  canonicalUrl?: string;
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: string;
-  twitterCard?: string;
-  twitterSite?: string;
-};
-/**
- * Escape HTML special characters to safely inject content into generated HTML strings.
- * @param str - input string to escape
- */
-function escapeHtml(str: string) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+import type { PageElement } from '@shared/types';
+
+
 /**
  * GenericElement
  *
@@ -182,101 +151,5 @@ export function GenericElement({
     }
   }
 }
-/**
- * generateMetaTags
- *
- * Build an HTML string containing meta tags suitable for injecting into a page header
- * or showing to the user as an exportable snippet.
- *
- * @param meta - SeoMeta object describing page-level SEO fields
- * @returns HTML string of meta tags (newline separated)
- */
-export function generateMetaTags(meta?: SeoMeta): string {
-  if (!meta) return '';
-  const parts: string[] = [];
-  if (meta.title) {
-    parts.push(`<title>${escapeHtml(meta.title)}</title>`);
-    parts.push(`<meta property="og:title" content="${escapeHtml(meta.ogTitle || meta.title)}" />`);
-  }
-  if (meta.description) {
-    parts.push(`<meta name="description" content="${escapeHtml(meta.description)}" />`);
-    parts.push(`<meta property="og:description" content="${escapeHtml(meta.ogDescription || meta.description)}" />`);
-  }
-  if (meta.keywords) {
-    const keywords = Array.isArray(meta.keywords) ? meta.keywords.join(', ') : meta.keywords;
-    if (keywords) parts.push(`<meta name="keywords" content="${escapeHtml(keywords)}" />`);
-  }
-  if (meta.canonicalUrl) {
-    parts.push(`<link rel="canonical" href="${escapeHtml(meta.canonicalUrl)}" />`);
-  }
-  if (meta.ogImage) {
-    parts.push(`<meta property="og:image" content="${escapeHtml(meta.ogImage)}" />`);
-    parts.push(`<meta name="twitter:image" content="${escapeHtml(meta.ogImage)}" />`);
-  }
-  if (meta.twitterCard) {
-    parts.push(`<meta name="twitter:card" content="${escapeHtml(meta.twitterCard)}" />`);
-  } else {
-    // sensible default
-    parts.push(`<meta name="twitter:card" content="summary_large_image" />`);
-  }
-  if (meta.twitterSite) {
-    parts.push(`<meta name="twitter:site" content="${escapeHtml(meta.twitterSite)}" />`);
-  }
-  // Open Graph basic tags
-  if (meta.ogTitle || meta.title) {
-    parts.push(`<meta property="og:type" content="website" />`);
-  }
-  return parts.join('\n');
-}
-/**
- * generateEmbedCode
- *
- * Generate a simple embeddable HTML snippet for a given PageElement.
- * Useful for exporting a single section or element to place on an external site.
- *
- * @param element - PageElement to export
- * @param opts - optional settings (e.g. siteUrl to resolve relative image URLs)
- * @returns HTML string snippet
- */
-export function generateEmbedCode(element: PageElement, opts?: { siteUrl?: string }): string {
-  if (!element) return '';
-  const props = element.props || {};
-  const type = (element.type || 'text').toLowerCase();
-  switch (type) {
-    case 'text': {
-      const content = typeof element.children === 'string' ? element.children : props.text || '';
-      if (props.allowHtml) {
-        return `<div class="ghl-embed-text">${content}</div>`;
-      }
-      return `<div class="ghl-embed-text">${escapeHtml(String(content))}</div>`;
-    }
-    case 'image': {
-      let src = props.src || '';
-      if (opts?.siteUrl && src && src.startsWith('/')) {
-        src = `${opts.siteUrl.replace(/\/$/, '')}${src}`;
-      }
-      const alt = escapeHtml(String(props.alt || props.title || ''));
-      return `<img class="ghl-embed-image" src="${escapeHtml(src)}" alt="${alt}" />`;
-    }
-    case 'button': {
-      const label = escapeHtml(String(props.label || (typeof element.children === 'string' ? element.children : 'Click')));
-      const href = escapeHtml(String(props.href || '#'));
-      const target = props.target || '_self';
-      return `<a class="ghl-embed-button" href="${href}" target="${target}">${label}</a>`;
-    }
-    case 'container': {
-      const children = Array.isArray(element.children) ? element.children : [];
-      const inner = children.map((child) => generateEmbedCode(child as PageElement, opts)).join('\n');
-      return `<div class="ghl-embed-container">\n${inner}\n</div>`;
-    }
-    case 'html': {
-      const html = props.html || '';
-      return `<div class="ghl-embed-html">\n${html}\n</div>`;
-    }
-    default: {
-      // Generic fallback: output JSON
-      const safe = escapeHtml(JSON.stringify(element, null, 2));
-      return `<pre class="ghl-embed-fallback">${safe}</pre>`;
-    }
-  }
-}
+
+
