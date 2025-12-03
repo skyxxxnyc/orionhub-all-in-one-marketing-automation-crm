@@ -3,7 +3,7 @@ import type { Env } from './core-utils';
 import { UserEntity, ChatBoardEntity, ContactEntity, PipelineEntity, DealEntity, WorkflowEntity, EmailTemplateEntity, SMSTemplateEntity, CampaignEntity, ConversationEntity, PageEntity, FunnelEntity, AppointmentEntity, AvailabilityEntity, CalendarEventEntity, IntegrationEntity, OrganizationEntity, WorkspaceEntity, BillingEntity, RoleEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 import type { Contact, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, Campaign, Conversation, Message, Page, Funnel, Appointment, Availability, Integration, Organization, Workspace, Billing } from "@shared/types";
-import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS } from "@shared/mock-data";
+import { MOCK_REPORTS, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_PAGES } from "@shared/mock-data";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/test', (c) => c.json({ success: true, data: { name: 'CF Workers Demo' }}));
   // USERS
@@ -260,11 +260,35 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!billing) return notFound(c, 'billing info not found');
     return ok(c, billing);
   });
-  // --- NEW PHASE 9 ROUTES ---
+  // FUNNELS & PAGES
+  app.get('/api/funnels', async (c) => {
+    await FunnelEntity.ensureSeed(c.env);
+    return ok(c, await FunnelEntity.list(c.env));
+  });
+  app.get('/api/pages/:id', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) {
+      // Seed if not found for demo purposes
+      const mockPage = MOCK_PAGES.find(p => p.id === c.req.param('id'));
+      if (mockPage) {
+        await PageEntity.create(c.env, mockPage);
+        return ok(c, mockPage);
+      }
+      return notFound(c, 'page not found');
+    }
+    return ok(c, await page.getState());
+  });
+  app.put('/api/pages/:id', async (c) => {
+    const page = new PageEntity(c.env, c.req.param('id'));
+    if (!await page.exists()) return notFound(c, 'page not found');
+    const patch = await c.req.json() as Partial<Page>;
+    await page.patch(patch);
+    return ok(c, await page.getState());
+  });
+  // REPORTS
   app.get('/api/reports/:orgId', async (c) => {
     const orgId = c.req.param('orgId');
     if (!await OrganizationEntity.exists(c.env, orgId)) return notFound(c, 'organization not found');
-    // Mock report data for the specific org
     const report = MOCK_REPORTS.find(r => r.orgId === orgId);
     return ok(c, report || { metrics: { totalRevenue: 0, subAccounts: 0, conversionRate: 0 } });
   });
@@ -273,7 +297,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { url, events } = await c.req.json() as { url?: string, events?: string[] };
     if (!isStr(url) || !Array.isArray(events)) return bad(c, 'url and events are required');
     const newWebhook = { id: `wh-${crypto.randomUUID()}`, url, events, active: true };
-    // In a real app, you'd persist this
     MOCK_WEBHOOKS.push(newWebhook);
     return ok(c, newWebhook);
   });
