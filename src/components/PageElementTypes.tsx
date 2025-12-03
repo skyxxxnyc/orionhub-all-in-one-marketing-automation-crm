@@ -9,10 +9,3 @@ export const PageElementNode = ({ data }: NodeProps<PageElement>) => {
     </div>
   );
 };
-export const PageElementTypes = {
-  text: PageElementNode,
-  image: PageElementNode,
-  form: PageElementNode,
-  button: PageElementNode,
-  section: PageElementNode,
-};
