@@ -77,7 +77,11 @@ function updateWranglerJsonc() {
 }
 
 function runSetupCommands() {
-    const commands = [];
+    const commands = [
+    "bun add papaparse@^5.4.1",
+    "bun add @stripe/stripe-js@^4.3.0",
+    "bun add stripe@^16.10.0"
+];
     
     if (commands.length === 0) {
         console.log('⊘ No setup commands to run');
