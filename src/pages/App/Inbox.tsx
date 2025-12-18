@@ -13,17 +13,16 @@ import { api } from '@/lib/api-client';
 import type { Conversation, Contact } from '@shared/types';
 import { ConversationThread } from '@/components/ConversationThread';
 import { Checkbox } from '@/components/ui/checkbox';
-const fetchInbox = async ({ pageParam = null }: { pageParam?: string | null }) => 
-  api<{ items: Conversation[]; next: string | null }>('/api/inbox', { query: { cursor: pageParam } });
-const fetchContacts = async () => 
+const fetchInbox = async ({ pageParam = null, search = '' }: { pageParam?: string | null, search?: string }) =>
+  api<{ items: Conversation[]; next: string | null }>('/api/inbox', { query: { cursor: pageParam, search } });
+const fetchContacts = async () =>
   api<{ items: Contact[] }>('/api/contacts');
 export function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const { data: inboxData, isLoading: isInboxLoading } = useInfiniteQuery({
     queryKey: ['inbox', search],
-    queryFn: fetchInbox,
+    queryFn: ({ pageParam }) => fetchInbox({ pageParam, search }),
     getNextPageParam: (lastPage) => lastPage.next,
     initialPageParam: null
   });
@@ -41,30 +40,32 @@ export function Inbox() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
-            <h1 className="text-5xl font-display font-black uppercase">Inbox</h1>
-            <p className="text-muted-foreground font-mono">Unified communication stream.</p>
+            <h1 className="editorial-heading">Inbox</h1>
+            <p className="text-xl font-mono mt-2 uppercase font-bold text-muted-foreground">Unified communication stream.</p>
           </div>
           <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="SEARCH..." 
-              className="brutalist-input pl-10 uppercase font-bold" 
-              value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black" />
+            <Input
+              placeholder="SEARCH CONVERSATIONS..."
+              className="brutalist-input pl-12 h-12 uppercase font-black"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
-        <div className="border-4 border-black bg-white overflow-hidden">
+        <div className="border-4 border-black bg-white shadow-brutalist overflow-hidden">
           <Table>
             <TableHeader className="bg-black">
               <TableRow className="hover:bg-black border-b-4 border-black">
-                <TableHead className="w-12 text-white"><Checkbox className="border-white" /></TableHead>
-                <TableHead className="text-white font-black uppercase">Contact</TableHead>
-                <TableHead className="text-white font-black uppercase">Last Message</TableHead>
-                <TableHead className="text-white font-black uppercase">Channel</TableHead>
-                <TableHead className="text-white font-black uppercase">Status</TableHead>
+                <TableHead className="w-12 text-white">
+                  <Checkbox className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black" />
+                </TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Contact</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Last Message</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Channel</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,30 +84,32 @@ export function Inbox() {
                   const contact = contactsById.get(conv.contactId);
                   const lastMessage = conv.messages[conv.messages.length - 1];
                   return (
-                    <TableRow 
-                      key={conv.id} 
-                      onClick={() => setSelectedConversation(conv)} 
-                      className="cursor-pointer hover:bg-orange-50 border-b-2 border-black transition-colors"
+                    <TableRow
+                      key={conv.id}
+                      onClick={() => setSelectedConversation(conv)}
+                      className="cursor-pointer hover:bg-orange-50 border-b-2 border-black transition-colors group"
                     >
-                      <TableCell onClick={(e) => e.stopPropagation()}><Checkbox className="border-black" /></TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox className="border-black data-[state=checked]:bg-black data-[state=checked]:text-white" />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border-2 border-black">
                             <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${contact?.name}`} />
-                            <AvatarFallback className="bg-orange-500 text-white font-bold">{contact ? getInitials(contact.name) : '?'}</AvatarFallback>
+                            <AvatarFallback className="bg-black text-white font-bold">{contact ? getInitials(contact.name) : '?'}</AvatarFallback>
                           </Avatar>
-                          <span className="font-black uppercase">{contact?.name || 'Unknown'}</span>
+                          <span className="font-black uppercase text-sm">{contact?.name || 'Unknown'}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="truncate max-w-xs font-medium">{lastMessage?.text}</p>
-                        <p className="text-xs font-mono text-muted-foreground">{formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true })}</p>
+                        <p className="truncate max-w-xs font-bold text-sm">{lastMessage?.text}</p>
+                        <p className="text-[10px] font-mono uppercase text-muted-foreground">{formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true })}</p>
                       </TableCell>
                       <TableCell>
                         {conv.channel === 'email' ? <Mail className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
                       </TableCell>
                       <TableCell>
-                        <Badge className={conv.status === 'open' ? 'bg-orange-500 text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black border-2 border-black'}>
+                        <Badge className={conv.status === 'open' ? 'bg-orange-500 text-white border-2 border-black' : 'bg-white text-black border-2 border-black'}>
                           {conv.status.toUpperCase()}
                         </Badge>
                       </TableCell>
@@ -118,7 +121,7 @@ export function Inbox() {
                   <TableCell colSpan={5} className="h-48 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <Users className="h-12 w-12 text-muted-foreground" />
-                      <p className="font-display font-bold text-xl uppercase">No conversations found</p>
+                      <p className="font-display font-black text-xl uppercase">No conversations found</p>
                     </div>
                   </TableCell>
                 </TableRow>

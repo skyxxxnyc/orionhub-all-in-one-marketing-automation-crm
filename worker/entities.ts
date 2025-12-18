@@ -1,86 +1,79 @@
 import { IndexedEntity } from "./core-utils";
 import type { Env } from './core-utils';
-import type { User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, Campaign, Conversation, Message, Page, Funnel, FunnelStep, Appointment, Availability, CalendarEvent, Integration, Organization, Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, Article, WorkflowState, Project, Template, ChatSession } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, MOCK_ARTICLES, MOCK_WORKFLOW_TEMPLATES, MOCK_PROJECTS, MOCK_TEMPLATE_GALLERY, MOCK_CHAT_SESSIONS, MOCK_FUNNEL_TEMPLATES } from "@shared/mock-data";
-// USER ENTITY
+import type { 
+  User, Chat, ChatMessage, Contact, ContactActivity, Pipeline, Deal, 
+  Workflow, WorkflowNode, WorkflowEdge, EmailTemplate, SMSTemplate, 
+  Campaign, Conversation, Message, Page, Funnel, FunnelStep, 
+  Appointment, Availability, CalendarEvent, Integration, Organization, 
+  Workspace, Billing, Role, Webhook, APIKey, ReportMetrics, Ticket, 
+  Article, WorkflowState, Project, Template, ChatSession 
+} from "@shared/types";
+import { 
+  MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS, MOCK_CONTACTS, 
+  MOCK_PIPELINES, MOCK_DEALS, MOCK_WORKFLOWS, MOCK_EMAIL_TEMPLATES, 
+  MOCK_SMS_TEMPLATES, MOCK_CAMPAIGNS, MOCK_CONVERSATIONS, MOCK_PAGES, 
+  MOCK_FUNNELS, MOCK_APPOINTMENTS, MOCK_AVAILABILITIES, MOCK_CALENDAR_EVENTS, 
+  MOCK_INTEGRATIONS, MOCK_ORGANIZATIONS, MOCK_WORKSPACES, MOCK_BILLING, 
+  MOCK_ROLES, MOCK_WEBHOOKS, MOCK_API_KEYS, MOCK_REPORTS, MOCK_TICKETS, 
+  MOCK_ARTICLES, MOCK_WORKFLOW_TEMPLATES, MOCK_PROJECTS, 
+  MOCK_TEMPLATE_GALLERY, MOCK_CHAT_SESSIONS, MOCK_FUNNEL_TEMPLATES 
+} from "@shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user"; static readonly indexName = "users";
   static readonly initialState: User = { id: "", name: "" }; static seedData = MOCK_USERS;
 }
-// CHAT BOARD ENTITY
 export type ChatBoardState = Chat & { messages: ChatMessage[] };
 const SEED_CHAT_BOARDS: ChatBoardState[] = MOCK_CHATS.map(c => ({ ...c, messages: MOCK_CHAT_MESSAGES.filter(m => m.chatId === c.id) }));
 export class ChatBoardEntity extends IndexedEntity<ChatBoardState> {
   static readonly entityName = "chat"; static readonly indexName = "chats";
   static readonly initialState: ChatBoardState = { id: "", title: "", messages: [] }; static seedData = SEED_CHAT_BOARDS;
-  async listMessages(): Promise<ChatMessage[]> { const { messages } = await this.getState(); return messages; }
-  async sendMessage(userId: string, text: string): Promise<ChatMessage> {
-    const msg: ChatMessage = { id: crypto.randomUUID(), chatId: this.id, userId, text, ts: Date.now() };
-    await this.mutate(s => ({ ...s, messages: [...s.messages, msg] })); return msg;
-  }
 }
-// CONTACT ENTITY
 export class ContactEntity extends IndexedEntity<Contact> {
   static readonly entityName = "contact"; static readonly indexName = "contacts";
-  static readonly initialState: Contact = { id: "", name: "", tags: [], customFields: {}, activities: [], createdAt: 0 }; static seedData = MOCK_CONTACTS;
+  static readonly initialState: Contact = { id: "", name: "", tags: [], customFields: {}, activities: [], createdAt: 0 }; 
+  static seedData = MOCK_CONTACTS.map(c => ({ ...c, orgId: 'org-1' }));
 }
-// PIPELINE ENTITY
 type PipelineState = Omit<Pipeline, 'deals'>;
 export class PipelineEntity extends IndexedEntity<PipelineState> {
   static readonly entityName = "pipeline"; static readonly indexName = "pipelines";
   static readonly initialState: PipelineState = { id: "", name: "", stages: [] }; static seedData = MOCK_PIPELINES;
 }
-// DEAL ENTITY
 export class DealEntity extends IndexedEntity<Deal> {
   static readonly entityName = "deal"; static readonly indexName = "deals";
   static readonly initialState: Deal = { id: "", title: "", value: 0, stage: "", createdAt: 0, updatedAt: 0 }; static seedData = MOCK_DEALS;
 }
-// WORKFLOW ENTITY
 export class WorkflowEntity extends IndexedEntity<WorkflowState> {
   static readonly entityName = "workflow"; static readonly indexName = "workflows";
   static readonly initialState: WorkflowState = { id: "", name: "", nodes: [], edges: [], createdAt: 0, updatedAt: 0, variants: [], executions: [], isTemplate: false, paused: false, orgId: '', industry: '' };
   static seedData = [...MOCK_WORKFLOWS.map(w => ({ ...w, variants: [], executions: [], isTemplate: false, paused: false, orgId: 'org-1' })), ...MOCK_WORKFLOW_TEMPLATES];
-  async update(nodes: WorkflowNode[], edges: WorkflowEdge[]): Promise<WorkflowState> { return this.mutate(s => ({ ...s, nodes, edges, updatedAt: Date.now() })); }
 }
-// PAGE ENTITY
 export class PageEntity extends IndexedEntity<Page> {
   static readonly entityName = "page"; static readonly indexName = "pages";
   static readonly initialState: Page = { id: "", name: "", content: [], analytics: { views: 0, conversions: 0 }, createdAt: 0, description: '', isTemplate: false, orgId: '', industry: '' }; static seedData = MOCK_PAGES;
 }
-// FUNNEL ENTITY
 export class FunnelEntity extends IndexedEntity<Funnel> {
   static readonly entityName = "funnel"; static readonly indexName = "funnels";
-  static readonly initialState: Funnel = { id: "", name: "", steps: [], createdAt: 0 };
-  static seedData = [...MOCK_FUNNELS, ...MOCK_FUNNEL_TEMPLATES.map(f => ({ ...f, isTemplate: true, category: 'funnel' }))];
+  static readonly initialState: Funnel = { id: "", name: "", steps: [], createdAt: 0, isTemplate: false, category: '', orgId: '' };
+  static seedData = [...MOCK_FUNNELS.map(f => ({ ...f, isTemplate: false, orgId: 'org-1' })), ...MOCK_FUNNEL_TEMPLATES.map(f => ({ ...f, isTemplate: true, category: 'funnel' }))];
 }
-// PROJECT ENTITY
 export class ProjectEntity extends IndexedEntity<Project> {
   static readonly entityName = "project"; static readonly indexName = "projects";
   static readonly initialState: Project = { id: "", name: "", type: "funnel", ownerId: "", status: "draft", version: 1, collaborators: [], orgId: "", workspaceId: "", createdAt: 0, analytics: { views: 0, completions: 0, revenue: 0 } };
   static seedData = MOCK_PROJECTS;
 }
-// TEMPLATE ENTITY
 export class TemplateEntity extends IndexedEntity<Template> {
   static readonly entityName = "template"; static readonly indexName = "templates";
   static readonly initialState: Template = { id: "", type: "funnel", name: "", description: "", category: "", industry: "", complexity: "simple", isUserGenerated: false, public: false, orgId: "", metrics: { views: 0, completions: 0, adoption: 0 } };
   static seedData = MOCK_TEMPLATE_GALLERY;
-  async share(isPublic: boolean) { return this.patch({ public: isPublic }); }
 }
-// ARTICLE ENTITY
 export class ArticleEntity extends IndexedEntity<Article> {
-  static readonly entityName = "article";
-  static readonly indexName = "articles";
-  static readonly initialState: Article = { id: "", title: "", category: "", content: "", role: "all" };
-  static seedData = MOCK_ARTICLES;
-  async updateCategory(cat: string) { return this.patch({ category: cat }); }
+  static readonly entityName = "article"; static readonly indexName = "articles";
+  static readonly initialState: Article = { id: "", title: "", category: "", content: "", role: "all" }; static seedData = MOCK_ARTICLES;
 }
-// CHAT SESSION ENTITY
 export class ChatSessionEntity extends IndexedEntity<ChatSession> {
   static readonly entityName = "chatSession"; static readonly indexName = "chatSessions";
-  static readonly initialState: ChatSession = { id: "", contactId: "", messages: [] };
-  static seedData = MOCK_CHAT_SESSIONS;
+  static readonly initialState: ChatSession = { id: "", contactId: "", messages: [] }; static seedData = MOCK_CHAT_SESSIONS;
 }
-// OTHER ENTITIES
 export class EmailTemplateEntity extends IndexedEntity<EmailTemplate> {
   static readonly entityName = "emailTemplate"; static readonly indexName = "emailTemplates";
   static readonly initialState: EmailTemplate = { id: "", name: "", subject: "", body: "", mergeTags: [] }; static seedData = MOCK_EMAIL_TEMPLATES;
@@ -91,15 +84,18 @@ export class SMSTemplateEntity extends IndexedEntity<SMSTemplate> {
 }
 export class CampaignEntity extends IndexedEntity<Campaign> {
   static readonly entityName = "campaign"; static readonly indexName = "campaigns";
-  static readonly initialState: Campaign = { id: "", type: "email", name: "", templateId: "", status: "draft", analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 } }; static seedData = MOCK_CAMPAIGNS;
+  static readonly initialState: Campaign = { id: "", type: "email", name: "", templateId: "", status: "draft", analytics: { sends: 0, deliveries: 0, opens: 0, clicks: 0 }, orgId: '' }; 
+  static seedData = MOCK_CAMPAIGNS.map(c => ({ ...c, orgId: 'org-1' }));
 }
 export class ConversationEntity extends IndexedEntity<Conversation> {
   static readonly entityName = "conversation"; static readonly indexName = "conversations";
-  static readonly initialState: Conversation = { id: "", contactId: "", channel: "email", messages: [], status: "open", lastMessageAt: 0 }; static seedData = MOCK_CONVERSATIONS;
+  static readonly initialState: Conversation = { id: "", contactId: "", channel: "email", messages: [], status: "open", lastMessageAt: 0, orgId: '' }; 
+  static seedData = MOCK_CONVERSATIONS.map(c => ({ ...c, orgId: 'org-1' }));
 }
 export class AppointmentEntity extends IndexedEntity<Appointment> {
   static readonly entityName = "appointment"; static readonly indexName = "appointments";
-  static readonly initialState: Appointment = { id: "", title: "", start: 0, end: 0, type: "", status: "scheduled", bufferBefore: 0, bufferAfter: 0 }; static seedData = MOCK_APPOINTMENTS;
+  static readonly initialState: Appointment = { id: "", title: "", start: 0, end: 0, type: "", status: "scheduled", bufferBefore: 0, bufferAfter: 0, orgId: '' }; 
+  static seedData = MOCK_APPOINTMENTS.map(a => ({ ...a, orgId: 'org-1' }));
 }
 export class AvailabilityEntity extends IndexedEntity<Availability> {
   static readonly entityName = "availability"; static readonly indexName = "availabilities";
@@ -131,31 +127,21 @@ export class RoleEntity extends IndexedEntity<Role> {
 }
 export class WebhookEntity extends IndexedEntity<Webhook> {
   static readonly entityName = "webhook"; static readonly indexName = "webhooks";
-  static readonly initialState: Webhook = { id: "", url: "", events: [], active: false };
-  static seedData = MOCK_WEBHOOKS;
+  static readonly initialState: Webhook = { id: "", url: "", events: [], active: false }; static seedData = MOCK_WEBHOOKS;
 }
 export class APIKeyEntity extends IndexedEntity<APIKey> {
   static readonly entityName = "apiKey"; static readonly indexName = "apiKeys";
-  static readonly initialState: APIKey = { id: "", key: "", permissions: [] };
-  static seedData = MOCK_API_KEYS;
+  static readonly initialState: APIKey = { id: "", key: "", permissions: [] }; static seedData = MOCK_API_KEYS;
 }
 export class ReportEntity extends IndexedEntity<{ id: string; orgId: string; metrics: ReportMetrics }> {
     static readonly entityName = "report"; static readonly indexName = "reports";
-    static readonly initialState = { id: "", orgId: "", metrics: {} };
-    static seedData = MOCK_REPORTS;
+    static readonly initialState = { id: "", orgId: "", metrics: {} }; static seedData = MOCK_REPORTS;
 }
 export class TicketEntity extends IndexedEntity<Ticket> {
-  static readonly entityName = "ticket";
-  static readonly indexName = "tickets";
-  static readonly initialState: Ticket = { id: "", title: "", description: "", priority: "low", type: "other", status: "open", orgId: "", createdAt: 0 };
-  static seedData = MOCK_TICKETS;
-  async resolve(): Promise<Ticket> {
-    await this.patch({ status: "resolved", resolvedAt: Date.now() });
-    return await this.getState();
-  }
+  static readonly entityName = "ticket"; static readonly indexName = "tickets";
+  static readonly initialState: Ticket = { id: "", title: "", description: "", priority: "low", type: "other", status: "open", orgId: "", createdAt: 0 }; static seedData = MOCK_TICKETS;
   static async listByOrg(env: Env, orgId: string): Promise<{ items: Ticket[]; next: string | null }> {
     const all = await this.list(env);
-    const items = all.items.filter(t => t.orgId === orgId);
-    return { items, next: null };
+    return { items: all.items.filter(t => t.orgId === orgId), next: null };
   }
 }
