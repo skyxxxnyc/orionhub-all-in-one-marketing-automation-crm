@@ -82,7 +82,9 @@ function runSetupCommands() {
     "bun add @stripe/stripe-js@^4.3.0",
     "bun add stripe@^16.10.0",
     "bun install reactflow",
-    "bun add jszip"
+    "bun add jszip",
+    "bun add @fontsource/ibm-plex-mono",
+    "bun add @fontsource/inter"
 ];
     
     if (commands.length === 0) {
