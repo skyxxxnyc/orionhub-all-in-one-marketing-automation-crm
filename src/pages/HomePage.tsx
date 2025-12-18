@@ -3,110 +3,122 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ArrowRight, Zap, Users, Target } from 'lucide-react';
-import { HeroIllustration } from '@/components/HeroIllustration';
 import { Toaster } from '@/components/ui/sonner';
 export function HomePage() {
   const features = [
     {
-      icon: <Zap className="h-8 w-8 text-orange-400" />,
-      title: 'Marketing Automation',
-      description: 'Build powerful workflows to nurture leads and engage customers automatically.',
+      icon: <Zap className="h-10 w-10 text-black" />,
+      title: 'Automation',
+      description: 'Build powerful workflows to nurture leads automatically.',
     },
     {
-      icon: <Users className="h-8 w-8 text-indigo-400" />,
+      icon: <Users className="h-10 w-10 text-black" />,
       title: 'Sales CRM',
-      description: 'Manage your contacts, deals, and sales pipeline in one visual platform.',
+      description: 'Manage contacts, deals, and pipelines in one visual platform.',
     },
     {
-      icon: <Target className="h-8 w-8 text-emerald-400" />,
-      title: 'All-in-One Platform',
-      description: 'Funnels, email marketing, scheduling, and more. Everything you need to grow.',
+      icon: <Target className="h-10 w-10 text-black" />,
+      title: 'Growth',
+      description: 'Funnels, email marketing, and scheduling to scale fast.',
     },
   ];
   return (
-    <div className="min-h-screen w-full bg-slate-900 text-white overflow-x-hidden">
-      <ThemeToggle className="fixed top-4 right-4" />
-      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500" />
-          <span className="text-xl font-bold font-display">OrionHub</span>
+    <div className="min-h-screen w-full bg-white text-black overflow-x-hidden selection:bg-orange-500 selection:text-white">
+      <ThemeToggle className="fixed top-6 right-6" />
+      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-between items-center border-b-4 border-black">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-orange-500 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" />
+          <span className="text-3xl font-display font-black uppercase tracking-tighter">OrionHub</span>
         </Link>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild>
-            <Link to="/login">Log In</Link>
-          </Button>
-          <Button className="btn-gradient rounded-full" asChild>
-            <Link to="/register">Get Started Free <ArrowRight className="ml-2 h-4 w-4" /></Link>
+        <div className="flex items-center gap-6">
+          <Link to="/login" className="font-black uppercase text-sm hover:underline underline-offset-4">Log In</Link>
+          <Button className="brutalist-button bg-orange-500 text-white" asChild>
+            <Link to="/register">Join Now <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
         </div>
       </header>
       <main>
-        <div className="relative isolate">
-          <div
-            className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-            aria-hidden="true"
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div
-              className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-              style={{
-                clipPath:
-                  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-              }}
-            />
-          </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="py-24 sm:py-32 lg:py-40 text-center">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-                  The All-in-One <span className="text-gradient">Marketing & Sales</span> Platform
-                </h1>
-                <p className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto text-pretty">
-                  OrionHub gives you the tools to find customers, build relationships, and grow your business—all from a single, powerful platform.
-                </p>
-                <div className="mt-10 flex items-center justify-center gap-x-6">
-                  <Button size="lg" className="btn-gradient rounded-full px-8 py-4 text-lg font-semibold" asChild>
-                    <Link to="/register">Start Your Free Trial</Link>
-                  </Button>
-                  <Button size="lg" variant="link" className="text-white" asChild>
-                    <Link to="/app">View Demo <span aria-hidden="true">→</span></Link>
-                  </Button>
-                </div>
-              </motion.div>
+            <h1 className="editorial-heading mb-8">
+              The <span className="text-orange-500">Raw</span> Power of <br />
+              Marketing.
+            </h1>
+            <p className="text-xl md:text-2xl font-medium max-w-xl mb-10 leading-relaxed">
+              OrionHub is a high-performance CRM and automation engine built for those who value speed, clarity, and results. No fluff. Just growth.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" className="brutalist-button bg-black text-white text-xl px-10 py-8" asChild>
+                <Link to="/register">Start Free Trial</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="brutalist-button text-xl px-10 py-8" asChild>
+                <Link to="/app">View Demo</Link>
+              </Button>
             </div>
-            <HeroIllustration />
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-24 sm:py-32">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="aspect-square bg-orange-500 border-8 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center p-12">
+              <div className="w-full h-full bg-white border-4 border-black p-6 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="h-8 w-3/4 bg-black" />
+                  <div className="h-8 w-1/2 bg-black" />
+                  <div className="h-8 w-5/6 bg-black" />
+                </div>
+                <div className="h-24 w-full bg-orange-500 border-4 border-black" />
+              </div>
+            </div>
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-black border-4 border-white rotate-12 flex items-center justify-center">
+              <span className="text-white font-black text-4xl">10X</span>
+            </div>
+          </motion.div>
+        </section>
+        <section className="bg-black text-white py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {features.map((feature, index) => (
                 <motion.div
                   key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex flex-col items-center p-6 rounded-2xl bg-slate-800/50 border border-slate-700"
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="border-4 border-white p-8 bg-black hover:bg-orange-500 transition-colors group"
                 >
-                  <div className="flex-shrink-0 w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center">
+                  <div className="bg-white p-4 w-fit border-4 border-black mb-6 group-hover:rotate-6 transition-transform">
                     {feature.icon}
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold">{feature.title}</h3>
-                  <p className="mt-2 text-slate-400">{feature.description}</p>
+                  <h3 className="text-3xl font-black uppercase mb-4">{feature.title}</h3>
+                  <p className="text-lg font-medium opacity-80">{feature.description}</p>
                 </motion.div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
+        <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-5xl md:text-7xl font-black uppercase mb-12 tracking-tighter">
+            Ready to <span className="underline decoration-orange-500 decoration-8 underline-offset-8">Dominate</span>?
+          </h2>
+          <Button size="lg" className="brutalist-button bg-orange-500 text-white text-2xl px-16 py-10" asChild>
+            <Link to="/register">Get Started Now</Link>
+          </Button>
+        </section>
       </main>
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center text-slate-500">
-          <p>&copy; {new Date().getFullYear()} OrionHub. All rights reserved.</p>
-          <p className="mt-2 text-sm">Built with ❤️ at Cloudflare</p>
+      <footer className="border-t-4 border-black py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-black" />
+            <span className="text-2xl font-black uppercase tracking-tighter">OrionHub</span>
+          </div>
+          <p className="font-mono text-sm uppercase font-bold">&copy; {new Date().getFullYear()} OrionHub. Built for the Edge.</p>
         </div>
       </footer>
       <Toaster richColors closeButton />

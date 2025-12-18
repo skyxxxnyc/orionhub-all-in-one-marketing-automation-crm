@@ -37,32 +37,31 @@ export function WorkflowToolbox() {
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
-    <div className="w-64 border-r bg-background p-4">
-      <h3 className="text-lg font-semibold mb-4">Toolbox</h3>
+    <div className="w-64 border-r-4 border-black bg-white p-4 overflow-y-auto">
+      <h3 className="text-2xl font-display font-black uppercase mb-6 tracking-tighter">Toolbox</h3>
       <TooltipProvider>
-        <Accordion type="multiple" defaultValue={['Triggers', 'Actions', 'Integrations']} className="w-full">
+        <Accordion type="multiple" defaultValue={['Triggers', 'Actions', 'Integrations']} className="w-full space-y-2">
           {Object.entries(toolboxItems).map(([category, items]) => (
-            <AccordionItem value={category} key={category}>
-              <AccordionTrigger>{category}</AccordionTrigger>
-              <AccordionContent>
+            <AccordionItem value={category} key={category} className="border-2 border-black">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline font-black uppercase text-sm">{category}</AccordionTrigger>
+              <AccordionContent className="px-3 pb-3">
                 <div className="space-y-2">
                   {items.map((item) => {
                     const Icon = (LucideIcons as any)[item.icon] || LucideIcons.HelpCircle;
                     return (
                       <Tooltip key={item.label}>
                         <TooltipTrigger asChild>
-                          <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            className="p-2 border rounded-lg flex items-center gap-2 cursor-grab bg-muted/50 hover:bg-muted transition-colors"
+                          <div
+                            className="p-2 border-2 border-black flex items-center gap-2 cursor-grab bg-white hover:bg-orange-50 transition-colors"
                             draggable
                             onDragStart={(event) => onDragStart(event, item)}
                           >
-                            <Icon className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{item.label}</span>
-                          </motion.div>
+                            <Icon className="h-4 w-4 text-black" />
+                            <span className="text-xs font-bold uppercase">{item.label}</span>
+                          </div>
                         </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>{item.description}</p>
+                        <TooltipContent side="right" className="bg-black text-white border-none">
+                          <p className="text-xs">{item.description}</p>
                         </TooltipContent>
                       </Tooltip>
                     );

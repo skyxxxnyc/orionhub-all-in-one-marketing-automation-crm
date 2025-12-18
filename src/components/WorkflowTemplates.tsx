@@ -36,77 +36,59 @@ export function WorkflowTemplates({ onSelect }: WorkflowTemplatesProps) {
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
-    <div className="py-4 space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold">Start with a Template</h2>
+    <div className="py-4 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-3xl font-display font-black uppercase">Templates</h2>
         <div className="relative w-full md:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search templates..."
-            className="pl-9"
+            placeholder="SEARCH..."
+            className="brutalist-input pl-10 uppercase font-bold"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.05,
-            },
-          },
-        }}
-        initial="hidden"
-        animate="show"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)
+          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full border-2 border-black" />)
         ) : (
           filteredTemplates.map((template) => (
-            <motion.div
+            <div
               key={template.id}
-              variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
-              whileHover={{ scale: 1.05, y: -4, zIndex: 10, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
-              transition={{ duration: 0.2 }}
-              className="cursor-pointer"
+              className="cursor-pointer brutalist-card flex flex-col p-0 overflow-hidden"
               onClick={() => onSelect(template)}
               draggable
               onDragStart={(e) => onDragStart(e, template)}
             >
-              <Card className="h-full overflow-hidden">
-                <CardHeader>
-                  <CardTitle>{template.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">{template.description}</CardDescription>
-                  <div className="flex gap-2 pt-1">
-                    {template.category && <Badge variant="secondary">{template.category}</Badge>}
-                    {template.complexity && <Badge variant="outline">{template.complexity}</Badge>}
-                  </div>
-                </CardHeader>
-                <CardContent className="h-40 bg-muted/50 pointer-events-none">
-                  <div className="h-full w-full overflow-hidden">
-                    <ReactFlow
-                      nodes={template.nodes ?? []}
-                      edges={template.edges ?? []}
-                      fitView
-                      nodesDraggable={false}
-                      nodesConnectable={false}
-                      elementsSelectable={false}
-                      proOptions={{ hideAttribution: true }}
-                      style={{ height: '100%', width: '100%' }}
-                    >
-                      <MiniMap nodeStrokeWidth={3} zoomable={false} pannable={false} />
-                    </ReactFlow>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <div className="p-4 border-b-2 border-black">
+                <h3 className="text-xl font-black uppercase truncate">{template.name}</h3>
+                <div className="flex gap-2 mt-2">
+                  {template.category && <Badge className="bg-black text-white uppercase text-[10px]">{template.category}</Badge>}
+                  {template.complexity && <Badge variant="outline" className="border-black uppercase text-[10px]">{template.complexity}</Badge>}
+                </div>
+              </div>
+              <div className="h-40 bg-muted pointer-events-none relative">
+                <ReactFlow
+                  nodes={template.nodes ?? []}
+                  edges={template.edges ?? []}
+                  fitView
+                  nodesDraggable={false}
+                  nodesConnectable={false}
+                  elementsSelectable={false}
+                  proOptions={{ hideAttribution: true }}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <MiniMap nodeStrokeWidth={3} zoomable={false} pannable={false} />
+                </ReactFlow>
+              </div>
+              <div className="p-4 bg-white">
+                <p className="text-xs font-medium text-muted-foreground line-clamp-2">{template.description}</p>
+              </div>
+            </div>
           ))
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

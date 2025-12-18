@@ -23,9 +23,9 @@ const navItems = [
   { href: "/app/projects", icon: FolderKanban, label: "Projects" },
   { href: "/app/campaigns", icon: Mail, label: "Campaigns" },
   { href: "/app/automations", icon: Workflow, label: "Automations" },
-  { href: "/app/funnels", icon: FileText, label: "Funnels & Pages" },
+  { href: "/app/funnels", icon: FileText, label: "Funnels" },
   { href: "/app/reporting", icon: AreaChart, label: "Reporting" },
-  { href: "/app/help", icon: LifeBuoy, label: "Help & Support" },
+  { href: "/app/help", icon: LifeBuoy, label: "Support" },
 ];
 export function AppSidebar(): JSX.Element {
   const location = useLocation();
@@ -35,21 +35,26 @@ export function AppSidebar(): JSX.Element {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500" />
-          <span className="text-xl font-bold font-display">OrionHub</span>
+    <Sidebar className="border-r-4 border-black">
+      <SidebarHeader className="p-4 border-b-4 border-black">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-orange-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" />
+          <span className="text-2xl font-display font-black uppercase tracking-tighter">OrionHub</span>
         </div>
       </SidebarHeader>
-      <SidebarContent className="flex-grow">
+      <SidebarContent className="p-2">
         <SidebarGroup>
-          <SidebarMenu>
+          <SidebarMenu className="space-y-1">
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={location.pathname.startsWith(item.href)}>
-                  <NavLink to={item.href}>
-                    <item.icon className="h-5 w-5" /> <span>{item.label}</span>
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={location.pathname.startsWith(item.href)}
+                  className="h-10 px-3 border-2 border-transparent data-[active=true]:border-black data-[active=true]:bg-orange-500 data-[active=true]:text-white hover:bg-orange-50 transition-all"
+                >
+                  <NavLink to={item.href} className="flex items-center gap-3">
+                    <item.icon className="h-5 w-5" /> 
+                    <span className="font-black uppercase text-xs tracking-widest">{item.label}</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -57,28 +62,30 @@ export function AppSidebar(): JSX.Element {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="mt-auto">
+      <SidebarFooter className="p-4 border-t-4 border-black bg-muted/30">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <NavLink to="/app/settings"><Settings className="h-5 w-5" /> <span>Settings</span></NavLink>
+            <SidebarMenuButton asChild className="hover:bg-orange-50 border-2 border-transparent hover:border-black">
+              <NavLink to="/app/settings" className="flex items-center gap-3">
+                <Settings className="h-5 w-5" /> 
+                <span className="font-black uppercase text-xs tracking-widest">Settings</span>
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="border-t border-border my-4" />
-        <div className="flex items-center justify-between p-2">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
+        <div className="mt-4 p-3 border-2 border-black bg-white flex items-center justify-between shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <Avatar className="h-8 w-8 border-2 border-black">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name}`} />
-              <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
+              <AvatarFallback className="bg-black text-white font-bold">{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">{user?.name}</span>
-              <span className="text-xs text-muted-foreground">{user?.email}</span>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-[10px] font-black uppercase truncate">{user?.name}</span>
+              <span className="text-[8px] font-mono truncate opacity-60">{user?.email}</span>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={logout}>
-            <LogOut className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={logout} className="h-8 w-8 hover:bg-orange-500 hover:text-white">
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </SidebarFooter>

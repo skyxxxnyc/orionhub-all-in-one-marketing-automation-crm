@@ -31,7 +31,6 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
         try {
           setFavorites(JSON.parse(savedFavorites));
         } catch (e) {
-          console.error("Failed to parse favorites from localStorage", e);
           setFavorites([]);
         }
       }
@@ -60,69 +59,64 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
     event.dataTransfer.effectAllowed = 'move';
   };
   return (
-    <div className="py-4 space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div className="py-4 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative w-full md:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search templates..."
-            className="pl-9"
+            placeholder="SEARCH TEMPLATES..."
+            className="brutalist-input pl-10 uppercase font-bold"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="funnel">Funnels</TabsTrigger>
-          <TabsTrigger value="automation">Automations</TabsTrigger>
-          <TabsTrigger value="page">Pages</TabsTrigger>
+        <TabsList className="bg-muted border-2 border-black p-1">
+          <TabsTrigger value="all" className="data-[state=active]:bg-black data-[state=active]:text-white uppercase font-bold">All</TabsTrigger>
+          <TabsTrigger value="funnel" className="data-[state=active]:bg-black data-[state=active]:text-white uppercase font-bold">Funnels</TabsTrigger>
+          <TabsTrigger value="automation" className="data-[state=active]:bg-black data-[state=active]:text-white uppercase font-bold">Automations</TabsTrigger>
+          <TabsTrigger value="page" className="data-[state=active]:bg-black data-[state=active]:text-white uppercase font-bold">Pages</TabsTrigger>
         </TabsList>
       </Tabs>
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } }}
-        initial="hidden"
-        animate="show"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)
+          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full border-2 border-black" />)
         ) : (
           filteredTemplates.map((template) => (
-            <motion.div
+            <div
               key={template.id}
-              variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
-              whileHover={{ scale: 1.05, y: -4, zIndex: 10, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
-              transition={{ duration: 0.2 }}
-              className="cursor-pointer"
+              className="cursor-pointer brutalist-card flex flex-col"
               onClick={() => onSelect(template)}
               draggable
               onDragStart={(e) => onDragStart(e, template)}
             >
-              <Card className="h-full overflow-hidden flex flex-col">
-                <CardHeader>
-                  <CardTitle>{template.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">{template.description}</CardDescription>
-                  <div className="flex gap-2 pt-1 flex-wrap">
-                    <Badge variant="outline" className="capitalize">{template.type}</Badge>
-                    {template.category && <Badge variant="secondary">{template.category}</Badge>}
-                    {template.complexity && <Badge variant="outline">{template.complexity}</Badge>}
-                  </div>
-                </CardHeader>
-                <CardContent className="text-xs text-muted-foreground flex-grow">
-                  <p>Used {template.metrics.adoption} times</p>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleFavorite(template.id); }}>
-                    <Star className={`h-4 w-4 ${favorites.includes(template.id) ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`} />
+              <div className="flex-grow">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-black uppercase leading-tight">{template.name}</h3>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 hover:bg-transparent"
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(template.id); }}
+                  >
+                    <Star className={`h-5 w-5 ${favorites.includes(template.id) ? 'text-orange-500 fill-orange-500' : 'text-black'}`} />
                   </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
+                </div>
+                <p className="text-sm font-medium text-muted-foreground mb-4 line-clamp-2">{template.description}</p>
+                <div className="flex gap-2 pt-1 flex-wrap">
+                  <Badge className="bg-black text-white uppercase text-[10px]">{template.type}</Badge>
+                  {template.category && <Badge variant="outline" className="border-black uppercase text-[10px]">{template.category}</Badge>}
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t-2 border-black flex justify-between items-center">
+                <span className="text-xs font-mono uppercase">Used {template.metrics.adoption}x</span>
+                <span className="text-xs font-mono uppercase">{template.complexity}</span>
+              </div>
+            </div>
           ))
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

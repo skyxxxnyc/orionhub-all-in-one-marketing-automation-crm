@@ -12,54 +12,46 @@ import { DataExport } from "@/components/DataExport";
 export function Dashboard() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const isAgency = currentOrg?.type === 'agency';
-  React.useEffect(() => {
-    // In a real app, you'd trigger a tour here based on user state
-    // e.g., if (!localStorage.getItem('tour-seen')) { startTour(); }
-  }, []);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="py-8 md:py-10 lg:py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="py-12 md:py-16">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back! Here's a snapshot of your business.</p>
+            <h1 className="text-6xl font-display font-black uppercase tracking-tighter leading-none">Dashboard</h1>
+            <p className="text-xl font-mono mt-2 uppercase font-bold text-muted-foreground">Business Overview & Metrics.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-3">
             <OnboardingTooltip tourId="add-contact-btn" content="Quickly add a new contact from here.">
-              <Button tabIndex={0} className="focus-visible:ring-2 ring-primary"><PlusCircle className="mr-2 h-4 w-4" /> Add Contact</Button>
+              <Button className="brutalist-button bg-orange-500 text-white">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Contact
+              </Button>
             </OnboardingTooltip>
-            <Button variant="outline" tabIndex={0} className="focus-visible:ring-2 ring-primary"><Import className="mr-2 h-4 w-4" /> Import CSV</Button>
+            <Button variant="outline" className="brutalist-button">
+              <Import className="mr-2 h-4 w-4" /> Import CSV
+            </Button>
             <DataExport />
           </div>
         </div>
-        <ResizablePanelGroup direction="vertical" className="min-h-[600px] rounded-lg border">
-          <ResizablePanel defaultSize={isAgency ? 50 : 100}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="p-4 sm:p-6 h-full overflow-auto"
-            >
-              <ReportingDashboard />
-            </motion.div>
-          </ResizablePanel>
-          {isAgency && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={50}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="p-4 sm:p-6 h-full overflow-auto"
-                >
-                  <h2 className="text-2xl font-bold mb-4">Agency Overview</h2>
-                  <AgencyReport />
-                </motion.div>
-              </ResizablePanel>
-            </>
-          )}
-        </ResizablePanelGroup>
+        <div className="border-4 border-black bg-white overflow-hidden shadow-brutalist">
+          <ResizablePanelGroup direction="vertical" className="min-h-[800px]">
+            <ResizablePanel defaultSize={isAgency ? 50 : 100}>
+              <div className="p-6 h-full overflow-auto">
+                <ReportingDashboard />
+              </div>
+            </ResizablePanel>
+            {isAgency && (
+              <>
+                <ResizableHandle className="h-2 bg-black" />
+                <ResizablePanel defaultSize={50}>
+                  <div className="p-6 h-full overflow-auto bg-orange-50">
+                    <h2 className="text-4xl font-display font-black uppercase mb-8 tracking-tighter">Agency Overview</h2>
+                    <AgencyReport />
+                  </div>
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
+        </div>
       </div>
     </div>
   );
