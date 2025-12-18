@@ -17,79 +17,67 @@ import { OnboardingTooltip } from "@/components/OnboardingTooltip";
 function AccountSettings() {
   const user = useAuthStore(s => s.user);
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Account Information</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="brutalist-card bg-white">
+      <h3 className="text-2xl font-black uppercase mb-6 tracking-tighter">Account Profile</h3>
+      <div className="space-y-6 max-w-xl">
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input id="name" defaultValue={user?.name} />
+          <Label className="font-black uppercase text-xs">Full Name</Label>
+          <Input className="brutalist-input" defaultValue={user?.name} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
-          <Input id="email" type="email" defaultValue={user?.email} />
+          <Label className="font-black uppercase text-xs">Email Address</Label>
+          <Input className="brutalist-input" type="email" defaultValue={user?.email} />
         </div>
-        <Button>Update Profile</Button>
-      </CardContent>
-    </Card>
+        <Button className="brutalist-button bg-black text-white">Update Profile</Button>
+      </div>
+    </div>
   );
 }
 export function Settings() {
   const currentOrg = useAuthStore((state) => state.currentOrg);
   const isAgency = currentOrg?.type === 'agency';
-  const MotionTabsContent = motion(TabsContent);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your account, team, and integrations.</p>
+        <div className="mb-12">
+          <h1 className="editorial-heading">Settings</h1>
+          <p className="text-xl font-mono mt-2 uppercase font-bold text-muted-foreground">Configuration & Governance.</p>
         </div>
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <OnboardingTooltip tourId="settings-integrations" content="Connect external services here.">
-              <TabsTrigger value="integrations">Integrations</TabsTrigger>
-            </OnboardingTooltip>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            <TabsTrigger value="api">API</TabsTrigger>
-            {isAgency && <TabsTrigger value="branding">Branding</TabsTrigger>}
-            <TabsTrigger value="help">Help & Support</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent p-0 mb-12">
+            {['account', 'team', 'billing', 'integrations', 'webhooks', 'api', 'branding', 'help'].map((tab) => {
+              if (tab === 'branding' && !isAgency) return null;
+              return (
+                <TabsTrigger 
+                  key={tab}
+                  value={tab} 
+                  className="brutalist-button bg-white data-[state=active]:bg-black data-[state=active]:text-white px-6 py-3 text-xs font-black uppercase tracking-widest"
+                >
+                  {tab}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
-          <MotionTabsContent value="account" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <AccountSettings />
-          </MotionTabsContent>
-          <MotionTabsContent value="team" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <TeamManagement />
-          </MotionTabsContent>
-          <MotionTabsContent value="billing" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <StripeBilling />
-          </MotionTabsContent>
-          <MotionTabsContent value="integrations" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <IntegrationSettings />
-          </MotionTabsContent>
-          <MotionTabsContent value="webhooks" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <WebhookManager />
-          </MotionTabsContent>
-          <MotionTabsContent value="api" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <APIKeyManager />
-          </MotionTabsContent>
-          {isAgency && (
-            <MotionTabsContent value="branding" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <BrandingSettings />
-            </MotionTabsContent>
-          )}
-          <MotionTabsContent value="help" className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <SupportTicketSystem />
-            <div className="mt-4">
-              <Button variant="link" asChild>
-                <Link to="/app/help">View Full Help Center</Link>
-              </Button>
-            </div>
-          </MotionTabsContent>
+          <div className="mt-0">
+            <TabsContent value="account"><AccountSettings /></TabsContent>
+            <TabsContent value="team"><TeamManagement /></TabsContent>
+            <TabsContent value="billing"><StripeBilling /></TabsContent>
+            <TabsContent value="integrations"><IntegrationSettings /></TabsContent>
+            <TabsContent value="webhooks"><WebhookManager /></TabsContent>
+            <TabsContent value="api"><APIKeyManager /></TabsContent>
+            {isAgency && <TabsContent value="branding"><BrandingSettings /></TabsContent>}
+            <TabsContent value="help">
+              <div className="space-y-8">
+                <SupportTicketSystem />
+                <div className="brutalist-card bg-orange-500 text-white flex justify-between items-center">
+                  <span className="font-black uppercase text-lg">Need more help?</span>
+                  <Button className="brutalist-button bg-black text-white" asChild>
+                    <Link to="/app/help">KNOWLEDGE BASE &rarr;</Link>
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

@@ -46,122 +46,85 @@ export function Contacts() {
     },
     onError: () => toast.error('Failed to delete contacts.'),
   });
-  const importMutation = useMutation({
-    mutationFn: (newContacts: Partial<Contact>[]) => api<Contact[]>('/api/contacts/import', { method: 'POST', body: JSON.stringify(newContacts) }),
-    onSuccess: (created) => {
-      toast.success(`${created.length} contacts imported successfully.`);
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-    },
-    onError: () => toast.error('Failed to import contacts.'),
-  });
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     setSelected(checked === true ? contacts.map(c => c.id) : []);
   };
   const handleSelectRow = (id: string, checked: boolean) => {
     setSelected(prev => checked ? [...prev, id] : prev.filter(rowId => rowId !== id));
   };
-  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const requiredHeaders = ['name', 'email'];
-          const hasHeaders = requiredHeaders.every(h => results.meta.fields?.includes(h));
-          if (!hasHeaders) {
-            toast.error('CSV must contain "name" and "email" columns.');
-            return;
-          }
-          importMutation.mutate(results.data as Partial<Contact>[]);
-        },
-        error: () => toast.error('Error parsing CSV file.'),
-      });
-    }
-  };
-  const handleExport = () => {
-    const csv = Papa.unparse(contacts.map(({ id, activities, ...rest }) => rest));
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'contacts.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Contacts exported.');
-  };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8 md:py-10 lg:py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
-            <p className="text-muted-foreground">Manage your contacts and leads.</p>
+            <h1 className="editorial-heading">Contacts</h1>
+            <p className="text-xl font-mono mt-2 uppercase font-bold text-muted-foreground">Relationship Management.</p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate('/app/contacts/new')}><PlusCircle className="mr-2 h-4 w-4" /> Add Contact</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button className="brutalist-button bg-orange-500 text-white" onClick={() => navigate('/app/contacts/new')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Contact
+            </Button>
             <OnboardingTooltip tourId="import-contacts" content="Import from CSV to add multiple contacts at once.">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline"><Import className="mr-2 h-4 w-4" /> Import</Button>
+                  <Button variant="outline" className="brutalist-button"><Import className="mr-2 h-4 w-4" /> Import</Button>
                 </SheetTrigger>
-                <SheetContent>
+                <SheetContent className="border-l-4 border-black">
                   <SheetHeader>
-                    <SheetTitle>Import Contacts</SheetTitle>
+                    <SheetTitle className="text-2xl font-black uppercase">Import Contacts</SheetTitle>
                   </SheetHeader>
-                  <div className="py-4">
-                    <p className="text-sm text-muted-foreground mb-4">Upload a CSV file with 'name' and 'email' columns.</p>
-                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
-                    <Button onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending}>
-                      {importMutation.isPending ? 'Importing...' : 'Choose CSV File'}
+                  <div className="py-8 space-y-4">
+                    <p className="font-bold uppercase text-sm">Upload a CSV file with 'name' and 'email' columns.</p>
+                    <input type="file" accept=".csv" ref={fileInputRef} className="hidden" />
+                    <Button className="brutalist-button w-full" onClick={() => fileInputRef.current?.click()}>
+                      Choose CSV File
                     </Button>
                   </div>
                 </SheetContent>
               </Sheet>
             </OnboardingTooltip>
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export</Button>
           </div>
         </div>
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <OnboardingTooltip tourId="search-contacts" content="Search by name, email, or tags.">
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search contacts..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            </div>
-          </OnboardingTooltip>
+        <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black" />
+            <Input 
+              placeholder="SEARCH CONTACTS..." 
+              className="brutalist-input pl-12 h-12 uppercase font-black" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
           {selected.length > 0 && (
-            <OnboardingTooltip tourId="bulk-actions" content="Perform actions on multiple contacts at once.">
-              <div className="flex items-center gap-2 animate-fade-in">
-                <span className="text-sm text-muted-foreground">{selected.length} selected</span>
-                <Button variant="outline" size="sm"><Tag className="mr-1 h-4 w-4" />Add Tag</Button>
-                <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(selected)} disabled={deleteMutation.isPending}>
-                  <Trash2 className="mr-1 h-4 w-4" />Delete
-                </Button>
-              </div>
-            </OnboardingTooltip>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 bg-black text-white p-2 border-2 border-black shadow-brutalist">
+              <span className="text-xs font-black uppercase px-2">{selected.length} SELECTED</span>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-orange-500 h-8 uppercase font-black text-[10px]"><Tag className="mr-1 h-3 w-3" />Tag</Button>
+              <Button variant="ghost" size="sm" className="text-white hover:bg-red-600 h-8 uppercase font-black text-[10px]" onClick={() => deleteMutation.mutate(selected)}><Trash2 className="mr-1 h-3 w-3" />Delete</Button>
+            </motion.div>
           )}
         </div>
-        <div className="border rounded-lg">
+        <div className="border-4 border-black bg-white shadow-brutalist overflow-hidden">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
+            <TableHeader className="bg-black">
+              <TableRow className="hover:bg-black border-b-4 border-black">
+                <TableHead className="w-[50px] text-white">
                   <Checkbox
+                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
                     checked={contacts.length > 0 && selected.length === contacts.length ? true : selected.length > 0 ? 'indeterminate' : false}
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Created At</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Name</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Email</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Tags</TableHead>
+                <TableHead className="text-white font-black uppercase tracking-widest">Created</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={i}>
+                Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={i} className="border-b-2 border-black">
                     <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
@@ -171,42 +134,45 @@ export function Contacts() {
                   </TableRow>
                 ))
               ) : contacts.length > 0 ? (
-                contacts.map((contact) => (
+                contacts.map((contact, idx) => (
                   <motion.tr
                     key={contact.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.01 }}
-                    transition={{ duration: 0.2 }}
-                    className="hover:bg-muted/50 cursor-pointer"
+                    transition={{ delay: idx * 0.03 }}
+                    className="hover:bg-orange-50 cursor-pointer border-b-2 border-black group"
                     onClick={() => navigate(`/app/contacts/${contact.id}`)}
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
+                        className="border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
                         checked={selected.includes(contact.id)}
                         onCheckedChange={(checked) => handleSelectRow(contact.id, !!checked)}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{contact.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{contact.email}</TableCell>
+                    <TableCell className="font-black uppercase text-sm">{contact.name}</TableCell>
+                    <TableCell className="font-mono text-xs">{contact.email}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {contact.tags.slice(0, 2).map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                        {contact.tags.length > 2 && <Badge variant="outline">+{contact.tags.length - 2}</Badge>}
+                        {contact.tags.slice(0, 2).map(tag => (
+                          <Badge key={tag} className="bg-black text-white rounded-none uppercase text-[10px] border-none">
+                            {tag}
+                          </Badge>
+                        ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{new Date(contact.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-mono text-[10px] uppercase">{new Date(contact.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-black hover:text-white border-2 border-transparent hover:border-black">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/app/contacts/${contact.id}`)}>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Add Note</DropdownMenuItem>
-                          <DropdownMenuItem>Start Automation</DropdownMenuItem>
+                        <DropdownMenuContent align="end" className="border-2 border-black shadow-brutalist rounded-none">
+                          <DropdownMenuItem className="font-black uppercase text-xs focus:bg-orange-500 focus:text-white" onClick={() => navigate(`/app/contacts/${contact.id}`)}>View Details</DropdownMenuItem>
+                          <DropdownMenuItem className="font-black uppercase text-xs focus:bg-orange-500 focus:text-white">Add Note</DropdownMenuItem>
+                          <DropdownMenuItem className="font-black uppercase text-xs focus:bg-orange-500 focus:text-white">Start Automation</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -214,16 +180,16 @@ export function Contacts() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">No contacts found.</TableCell>
+                  <TableCell colSpan={6} className="h-48 text-center font-black uppercase text-muted-foreground">No contacts found.</TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
         {hasNextPage && (
-          <div className="mt-4 text-center">
-            <Button onClick={() => fetchNextPage()} disabled={isFetching}>
-              {isFetching ? 'Loading more...' : 'Load More'}
+          <div className="mt-8 text-center">
+            <Button className="brutalist-button" onClick={() => fetchNextPage()} disabled={isFetching}>
+              {isFetching ? 'LOADING...' : 'LOAD MORE'}
             </Button>
           </div>
         )}
