@@ -54,27 +54,36 @@ const router = createBrowserRouter([
   },
 ]);
 export function App() {
-  const checkAuth = useAuthStore((state) => state.checkAuth);
-  const isLoading = useAuthStore((state) => state.isLoading);
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-  if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 animate-pulse" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
+  function AuthLoader({ children }: { children: React.ReactNode }) {
+    const checkAuth = useAuthStore((state) => state.checkAuth);
+    const isLoading = useAuthStore((state) => state.isLoading);
+    
+    useEffect(() => {
+      checkAuth();
+    }, [checkAuth]);
+    
+    if (isLoading) {
+      return (
+        <div className="h-screen w-screen flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 animate-pulse" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    return <>{children}</>;
   }
+
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthLoader>
+        <RouterProvider router={router} />
+      </AuthLoader>
       <Toaster richColors closeButton />
     </QueryClientProvider>
   );
