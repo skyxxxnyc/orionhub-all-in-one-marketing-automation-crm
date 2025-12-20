@@ -32,7 +32,7 @@ export function Dashboard() {
             <DataExport />
           </div>
         </div>
-        <div className="border-4 border-black bg-white overflow-hidden shadow-brutalist">
+        <div className="border-4 border-black bg-background overflow-hidden shadow-brutalist">
           <ResizablePanelGroup direction="vertical" className="min-h-[800px]">
             <ResizablePanel defaultSize={isAgency ? 50 : 100}>
               <div className="p-6 h-full overflow-auto">

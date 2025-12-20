@@ -54,8 +54,8 @@ export function Automations() {
   };
   if (selectedWorkflow) {
     return (
-      <div className="h-[calc(100vh-64px)] w-full flex flex-col bg-white">
-        <header className="h-16 border-b-4 border-black flex justify-between items-center px-6 bg-white z-10">
+      <div className="h-[calc(100vh-64px)] w-full flex flex-col bg-background">
+        <header className="h-16 border-b-4 border-black flex justify-between items-center px-6 bg-background z-10">
           <div className="flex items-center gap-4">
             <Button variant="ghost" className="font-black uppercase text-xs hover:bg-orange-50" onClick={() => setSelectedWorkflow(null)}>&larr; Exit</Button>
             <div className="h-8 w-[2px] bg-black" />
@@ -79,7 +79,7 @@ export function Automations() {
               <Background color="#000" gap={24} />
             </ReactFlow>
           </div>
-          <div className="w-96 border-l-4 border-black bg-white flex flex-col">
+          <div className="w-96 border-l-4 border-black bg-background flex flex-col">
             <Tabs defaultValue="inspector" className="flex-grow flex flex-col">
               <TabsList className="m-4 border-2 border-black bg-muted p-1 rounded-none">
                 <TabsTrigger value="inspector" className="flex-1 font-black uppercase text-xs data-[state=active]:bg-black data-[state=active]:text-white rounded-none">Inspector</TabsTrigger>
@@ -117,7 +117,7 @@ export function Automations() {
             </Sheet>
           </OnboardingTooltip>
         </div>
-        <div className="border-4 border-black bg-white shadow-brutalist overflow-hidden">
+        <div className="border-4 border-black bg-background shadow-brutalist overflow-hidden">
           <Table>
             <TableHeader className="bg-black">
               <TableRow className="hover:bg-black border-b-4 border-black">
