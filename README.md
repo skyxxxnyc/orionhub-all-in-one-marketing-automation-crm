@@ -2,7 +2,7 @@
 
 OrionHub is a fully-featured, enterprise-grade marketing automation + CRM platform built to run at the Cloudflare edge using Cloudflare Workers and a single Durable Object for storage. The product targets agencies and SMBs that need contact management, sales pipelines, automations, email & SMS campaigns, funnels/landing pages, scheduling, a unified inbox, multi-tenant (agency + sub-account) workflows and actionable analytics.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/skyxxxnyc/orionhub-all-in-one-marketing-automation-crm)
 
 ## Features
 
@@ -140,7 +140,7 @@ Deploy to Cloudflare Workers for edge execution:
 
    This builds the frontend assets, bundles the worker, and deploys to your Cloudflare account. The app will be available at `<your-worker>.<your-subdomain>.workers.dev`.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/skyxxxnyc/orionhub-all-in-one-marketing-automation-crm)
 
 ### Post-Deployment
 
